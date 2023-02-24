@@ -1,0 +1,47 @@
+﻿@page "/storagedefinitions/view/{Id:guid}"
+
+<div class="container pt-4">
+    @if (Storage == null) {
+        <span>Lädt ...</span>
+    } else {
+        <div class="row mb-3">
+            <div class="col-6">
+                <button class="btn btn-primary" @onclick=Back>Zurück</button>
+            </div>
+            <div class="col-6" style="display: flex; justify-content: end;">
+                <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <h3>Daten</h3>
+
+            <label class="form-label">Name</label>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" @bind=Storage.Name />
+                <button class="btn btn-success form-control" style="max-width: 3rem;"
+                        @onclick=Update disabled="@Submitting">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+            </div>
+            <FormError Error=@NameError />
+
+            <label class="form-label">Position <a href="@Storage.Position.ToURL()">Auf Karte anzeigen</a></label>
+            <div class="input-group mb-3">
+                <input type="number" class="form-control" @bind=ObjLatitude />
+                <span class="input-group-text">°</span>
+                <input type="number" class="form-control" @bind=ObjLongitude />
+                <span class="input-group-text">°</span>
+                <button class="btn btn-light form-control" style="max-width: 3rem;" disabled>
+                    <i class="bi bi-geo-alt-fill"></i>
+                </button>
+                <button class="btn btn-success form-control" style="max-width: 3rem;"
+                    @onclick=Update disabled="@Submitting">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>

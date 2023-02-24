@@ -1,0 +1,17 @@
+﻿<div class="modal" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.4);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" class="btn-close" @onclick=Cancel></button>
+            </div>
+            <div class="modal-body">
+                <p>@((MarkupString)Content)</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" @onclick=Confirm>Ok</button>
+                <button type="button" class="btn btn-danger" @onclick=Cancel>Abbrechen</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+﻿@page "/storagedefinitions/list"
+
+<div class="container pt-4">
+    @if (Objects == null) {
+        <span>Lädt ...</span>
+    } else {
+        <Pagination ChangePage=ChangePage CurrentPage=Page TotalItems=TotalItems RightAlign=true @bind-ItemsPerPage=ItemsPerPage />
+
+        <ListView Items=Objects.Data>
+            <HeaderFragment>
+                <TableRow>
+                    <th scope="col">Name</th>
+                    <th scope="col">Standort</th>
+                </TableRow>
+            </HeaderFragment>
+
+            <RowFragment>
+                <td><NavLink href="@("/storagedefinitions/view/" + context.Item.Id)">@context.Item.Name</NavLink></td>
+                <td><NavLink href="@context.Item.Position.ToURL()">@context.Item.Position</NavLink></td>
+            </RowFragment>
+        </ListView>
+
+        <Pagination ChangePage=ChangePage CurrentPage=Page TotalItems=TotalItems RightAlign=true @bind-ItemsPerPage=ItemsPerPage />
+    }
+</div>

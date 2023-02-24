@@ -1,0 +1,63 @@
+﻿@if (RightAlign) {
+    <div style="display: flex; justify-content: end;">
+        <div class="input-group ms-1" style="width: auto;">
+            <label class="input-group-text">Objekte pro Seite</label>
+            <select class="form-select form-select-sm" @bind=CurrentItemsPerPage>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <nav class="ms-1">
+            <ul class="pagination" style="margin-bottom: 0;">
+                <li class="page-item @(CanGoPrevious ? "" : "disabled")">
+                    <a class="page-link" href="" @onclick=PreviousClicked @onclick:preventDefault>
+                        <span>&laquo;</span>
+                    </a>
+                </li>
+                @for (int i = 0; i < PageCount; i++) {
+                    var j = i;
+                    <li class="page-item @(CurrentPage == i ? "active" : "")"><a class="page-link" href=""
+                        @onclick=@(_ => PageBtnClicked(j)) @onclick:preventDefault>@(i + 1)</a></li>
+                }
+                <li class="page-item @(CanGoNext ? "" : "disabled")">
+                    <a class="page-link" href="" @onclick=NextClicked @onclick:preventDefault>
+                        <span>&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+} else {
+    <div>
+        <nav class="ms-1">
+            <ul class="pagination" style="margin-bottom: 0;">
+                <li class="page-item @(CanGoPrevious ? "" : "disabled")">
+                    <a class="page-link" href="" @onclick=PreviousClicked @onclick:preventDefault>
+                        <span>&laquo;</span>
+                    </a>
+                </li>
+                @for (int i = 0; i < PageCount; i++) {
+                    var j = i;
+                    <li class="page-item @(CurrentPage == i ? "active" : "")"><a class="page-link" href=""
+                        @onclick=@(_ => PageBtnClicked(j)) @onclick:preventDefault>@(i + 1)</a></li>
+                }
+                <li class="page-item @(CanGoNext ? "" : "disabled")">
+                    <a class="page-link" href="" @onclick=NextClicked @onclick:preventDefault>
+                        <span>&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="input-group ms-1" style="width: auto;">
+            <label class="input-group-text">Objekte pro Seite</label>
+            <select class="form-select form-select-sm" @bind=CurrentItemsPerPage>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+    </div>
+}

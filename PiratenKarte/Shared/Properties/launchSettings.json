@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "PiratenKarte.Shared": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:63670;http://localhost:63671"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">PiratenKarte</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable">
+    <div style="height: 100%; justify-content: space-between; display: flex; flex-direction: column;">
+        <nav class="flex-column">
+            <NavButton Href="" URLMatch="^\d+\.\d*\/\d+\.\d*\/$" Title="Karte" Icon="bi bi-map-fill" MatchEmpty=true />
+            <NavButton Title="Objekte" Icon="bi bi-boxes" URLMatch="^mapobjects.*">
+                <NavButton Href="mapobjects/list" URLMatch="^mapobjects\/list.*" Title="Alle" Icon="bi bi-list-ul" />
+                <NavButton Href="mapobjects/create" URLMatch="^mapobjects\/create.*" Title="Neu" Icon="bi bi-plus-square-fill" />
+            </NavButton>
+
+            <NavButton Title="Lager" Icon="bi bi-building-fill" URLMatch="^storagedefinitions.*">
+                <NavButton Href="storagedefinitions/list" URLMatch="^storagedefinitions\/list.*" Title="Alle" Icon="bi bi-list-ul" />
+                <NavButton Href="storagedefinitions/create" URLMatch="^storagedefinitions\/create.*" Title="Neu" Icon="bi bi-plus-square-fill" />
+            </NavButton>
+        </nav>
+
+        <nav class="flex-column">
+            <NavButton Href="settings" Icon="bi bi-gear-fill" Title="Einstellungen" />
+        </nav>
+    </div>
+</div>
+
+@code {
+    private bool CollapseNavMenu = true;
+
+    private string? NavMenuCssClass => CollapseNavMenu ? "collapsed" : "";
+
+    private void ToggleNavMenu()
+    {
+        CollapseNavMenu = !CollapseNavMenu;
+    }
+}

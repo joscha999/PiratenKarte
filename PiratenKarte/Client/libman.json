@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "bootstrap-icons@1.10.3",
+      "destination": "wwwroot/bootstrap-icons/",
+      "files": [
+        "font/fonts/bootstrap-icons.woff",
+        "font/fonts/bootstrap-icons.woff2",
+        "font/bootstrap-icons.css",
+        "font/bootstrap-icons.json",
+        "font/bootstrap-icons.min.css"
+      ]
+    },
+    {
+      "library": "bootstrap@5.2.3",
+      "destination": "wwwroot/bootstrap/",
+      "files": [
+        "js/bootstrap.min.js",
+        "js/bootstrap.bundle.min.js",
+        "js/bootstrap.bundle.min.js.map",
+        "js/bootstrap.min.js.map",
+        "css/bootstrap-grid.min.css.map",
+        "css/bootstrap-grid.min.css",
+        "css/bootstrap-reboot.min.css",
+        "css/bootstrap-reboot.min.css.map",
+        "css/bootstrap-utilities.min.css",
+        "css/bootstrap-utilities.min.css.map",
+        "css/bootstrap.min.css",
+        "css/bootstrap.min.css.map"
+      ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "leaflet@1.7.1",
+      "destination": "wwwroot/leaflet/",
+      "files": [
+        "dist/leaflet.js",
+        "dist/leaflet.js.map",
+        "dist/leaflet.css"
+      ]
+    }
+  ]
+}

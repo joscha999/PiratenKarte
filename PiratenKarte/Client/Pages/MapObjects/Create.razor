@@ -1,0 +1,53 @@
+﻿@page "/mapobjects/create/{Latitude:double?}/{Longitude:double?}"
+
+@if (StorageDefinitions == null) {
+    <span>Lädt ...</span>
+} else {
+    <div class="container pt-4">
+        <h1>Neues Objekt</h1>
+
+        <div>
+            <div class="mb-3">
+                <label for="input_name" class="form-label">Name *</label>
+                <InputText class="form-control" id="input_name" @bind-Value=Object.Name />
+                <FormError Error=@NameError />
+            </div>
+            <div class="mb-3">
+                <label for="input_description" class="form-label">Beschreibung</label>
+                <InputTextArea class="form-control" id="input_description" @bind-Value=Object.Description />
+            </div>
+
+            <label for="input_lat" class="form-label">Position (Breitengrad, Längengrad)</label>
+            <div class="mb-3 input-group">
+                <InputNumber class="form-control" id="input_lat" @bind-Value=Latitude />
+                <span class="input-group-text">°</span>
+                <InputNumber class="form-control" id="input_lon" @bind-Value=Longitude />
+                <span class="input-group-text">°</span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Lager</label>
+                <select class="form-select" @bind=SelectedStorageId>
+                    <option selected value="">Keins</option>
+
+                    @foreach (var storage in StorageDefinitions) {
+                        <option selected="@(storage.Id == SelectedStorageId)" value="@storage.Id">@storage.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="input-group mb-3">
+                <input class="form-control" type="number" @bind=CreateManyCount min="1" max="100" step="1" />
+                <button class="btn btn-primary"
+                        disabled=@Submitting @onclick=BtnSubmitClicked>Erstellen
+                </button>
+                <button class="btn btn-primary" disabled=@Submitting
+                        @onclick=BtnSubmitToMapClicked>Erstellen und zurück zur Karte
+                </button>
+            </div>
+
+            <span>Beim Erstellen von mehreren Objekten kann "{0}" für die Zahl im Namen genutzt werden.</span><br />
+            <span>Somit wird aus "Name-{0}" und 3x jeweils "Name-1", "Name-2" und "Name-3".</span>
+        </div>
+    </div>
+}

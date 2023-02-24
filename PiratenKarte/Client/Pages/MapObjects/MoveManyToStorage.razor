@@ -1,0 +1,43 @@
+﻿@page "/mapobjects/movemanytostorage"
+
+<div class="container pt-4">
+    @if (StorageDefinitions == null || Objects == null) {
+        <span>Lädt ...</span>
+    } else {
+        <div class="mb-3">
+            <h3>Neues Lager</h3>
+
+            <label class="form-label">Lager</label>
+            <select class="form-select" @bind=SelectedStorageId>
+                <option selected value="">Keins</option>
+
+                @foreach (var storage in StorageDefinitions) {
+                    <option selected="@(storage.Id == SelectedStorageId)" value="@storage.Id">@storage.Name</option>
+                }
+            </select>
+            
+            <div style="display: flex; justify-content: right;" class="mt-1">
+                <button class="btn btn-success" @onclick=Submit disabled="@Submitting">
+                    Ok
+                </button>
+                <button class="btn btn-danger ms-1" @onclick=Cancel disabled="@Submitting">
+                    Abbrechen
+                </button>
+            </div>
+        </div>
+
+        <div class="mb3">
+            <h3>Betroffene Objekte</h3>
+
+            <ul>
+                @foreach (var obj in Objects) {
+                    if (obj.Storage == null) {
+                        <li>@obj.Name</li>
+                    } else {
+                        <li>@obj.Name aus @obj.Storage.Name</li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+</div>

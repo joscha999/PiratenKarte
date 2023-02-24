@@ -1,0 +1,27 @@
+﻿@typeparam T
+
+@if (Items == null) {
+    <span>Lädt ...</span>
+} else {
+    <table class="table">
+        <thead>
+            @HeaderFragment
+        </thead>
+        <tbody>
+            @{
+                var i = 0; 
+            }
+
+            @foreach (var item in Items) {
+                <tr>
+                    @RowFragment(new ListViewItem<T>(item, i))
+                </tr>
+
+                i++;
+            }
+        </tbody>
+        <tfoot>
+            @FooterFragment
+        </tfoot>
+    </table>
+}

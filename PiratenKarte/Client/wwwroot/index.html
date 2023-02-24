@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%;">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>PiratenKarte</title>
+    <base href="/" />
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="PiratenKarte.Client.styles.css" rel="stylesheet" />
+    <link href="css/MarkerStyles.css" rel="stylesheet" />
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="leaflet/dist/leaflet.css" rel="stylesheet" />
+</head>
+
+<body style="height: 100%;">
+    <div id="app" style="height: 100%;">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        Ein Fehler ist aufgetreten.
+        <a href="" class="reload">Seite neu Laden</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="leaflet/dist/leaflet.js"></script>
+</body>
+
+</html>

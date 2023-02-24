@@ -1,0 +1,25 @@
+﻿@page "/storagedefinitions/create"
+
+<div class="container pt-4">
+    <h1>Neues Lager</h1>
+
+    <div class="mb-3">
+        <label for="input_name" class="form-label">Name *</label>
+        <InputText class="form-control" id="input_name" @bind-Value=Storage.Name />
+        <FormError Error=@NameError />
+    </div>
+
+    <label for="input_lat" class="form-label">Position (Breitengrad, Längengrad)</label>
+    <div class="mb-3 input-group">
+        <InputNumber class="form-control" id="input_lat" @bind-Value=Latitude />
+        <span class="input-group-text">°</span>
+        <InputNumber class="form-control" id="input_lon" @bind-Value=Longitude />
+        <span class="input-group-text">°</span>
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" disabled=@Submitting @onclick=SaveObject>
+            Erstellen
+        </button>
+    </div>
+</div>

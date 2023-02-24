@@ -1,0 +1,21 @@
+﻿<a class="nav-link" href="" @onclick=OnClick @onclick:preventDefault>
+    <div class="nav-item px-1 @(IsActive ? "active" : "")" style="justify-content: space-between; display: flex;">
+        <span class="ps-2">
+            @if (!string.IsNullOrEmpty(Icon)) {
+                <i class="@Icon pe-2"></i> @Title
+            } else {
+                @Title
+            }
+        </span>
+
+        @if (ChildContent != null) {
+            <span class="pe-2"><i class="bi @(Collapsed ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i></span>
+        }
+    </div>
+</a>
+
+@if (ChildContent != null && !Collapsed) {
+    <div style="border-left: 0.4em solid #644C5B;">
+        @ChildContent
+    </div>
+}

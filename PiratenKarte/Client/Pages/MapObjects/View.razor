@@ -1,0 +1,156 @@
+﻿@page "/mapobjects/view/{Id:guid?}"
+@using System.Globalization;
+
+<div class="container pt-4">
+    @if (Object == null || StorageDefinitions == null) {
+        <span>Lädt ...</span>
+    } else {
+        <div class="row mb-3">
+            <div class="col-6">
+                <button class="btn btn-primary" @onclick=Back>Zurück</button>
+            </div>
+            <div class="col-6" style="display: flex; justify-content: end;">
+                <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="row mb-3">
+                    <h3>Daten</h3>
+
+                    <label class="form-label">Name</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" @bind=Object.Name />
+                        <button class="btn btn-success form-control" style="max-width: 3rem;"
+                                @onclick=UpdateObject disabled="@Submitting">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </div>
+                    <FormError Error=@NameError />
+                </div>
+
+                <div class="row mb-3">
+                    <label class="form-label">Beschreibung</label>
+                    <div class="input-group">
+                        <textarea type="text" class="form-control" @bind=Object.Description></textarea>
+                        <button class="btn btn-success form-control" style="max-width: 3rem;"
+                            @onclick=UpdateObject disabled="@Submitting">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @{
+                    string url;
+
+                    if (Object.Storage != null) {
+                        url = $"/{Object.Storage.Position.Latitude.ToString(CultureInfo.InvariantCulture)}"
+                            + $"/{Object.Storage.Position.Longitude.ToString(CultureInfo.InvariantCulture)}";
+                    } else {
+                        url = $"/{Object.LatLon.Latitude.ToString(CultureInfo.InvariantCulture)}"
+                            + $"/{Object.LatLon.Longitude.ToString(CultureInfo.InvariantCulture)}";
+                    }
+                }
+                <div class="row mb-3">
+                    @if (Object.Storage != null) {
+                        <label class="form-label">Position</label>
+                    } else {
+                        <label class="form-label">Position <a href="@url">Auf Karte anzeigen</a></label>
+                    }
+                    <div class="input-group">
+                        <input type="number" class="form-control" @bind=ObjLatitude />
+                        <span class="input-group-text">°</span>
+                        <input type="number" class="form-control" @bind=ObjLongitude />
+                        <span class="input-group-text">°</span>
+                        <button class="btn btn-primary form-control" style="max-width: 3rem;"
+                                @onclick=UpdateObjectPositionViaMap disabled="@Submitting">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </button>
+                        <button class="btn btn-success form-control" style="max-width: 3rem;"
+                                @onclick=UpdateObject disabled="@Submitting">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    @if (Object.Storage != null) {
+                        <label class="form-label">Lager <a href="@url">Auf Karte anzeigen</a></label>
+                    } else {
+                        <label class="form-label">Lager</label>
+                    }
+                    <div class="input-group">
+                        <select class="form-select" @bind=SelectedStorageId>
+                            <option selected value="">Keins</option>
+
+                            @foreach (var storage in StorageDefinitions) {
+                                <option selected="@(storage.Id == SelectedStorageId)" value="@storage.Id">@storage.Name</option>
+                            }
+                        </select>
+                        <button class="btn btn-success form-control" style="max-width: 3rem;" disabled="@Submitting"
+                                @onclick=UpdateStorage>
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <h3>Neue Notiz</h3>
+
+                    <div class="col-4">
+                        <label for="input_comment_name" class="form-label">Name</label>
+                        <input type="text" id="input_comment_name" class="form-control"
+                           disabled="@Submitting" @bind=NewCommentName />
+                    </div>
+                    <div class="col-8">
+                        <label for="input_comment_text" class="form-label">Notiz</label>
+                        <textarea id="input_comment_text" class="form-control"
+                              disabled="@Submitting" @bind=NewCommentContent></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: right;" class="mt-1">
+                        <button class="btn btn-primary" disabled="@Submitting"
+                            @onclick=CreateNewComment>
+                            Erstellen
+                        </button>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <h3>Notizen</h3>
+
+                    <div class="px-2.5">
+                        @foreach (var comment in Object.Comments) {
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <p class="card-text">@comment.Note</p>
+                                </div>
+                                <div class="card-footer">
+                                    <p class="card-text" style="display: inline;">
+                                        @comment.User <small class="text-muted">
+                                        am @comment.InsertionTime.LocalDateTime.ToShortDateString() um
+                                        @comment.InsertionTime.LocalDateTime.ToShortTimeString() Uhr</small>
+                                    </p>
+
+                                    <div style="float: right; display: inline;">
+                                        @{ var guid = comment.Id; }
+                                        <button class="btn btn-danger btn-sm" @onclick=@(_ => DeleteComment(guid))>Löschen</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" style="float: right;">
+                <h3>QR Code</h3>
+                @if (QRCode != null) {
+                    <img src="@($"data:image/png;base64, {Convert.ToBase64String(QRCode)}")" style="width: 100%;" />
+                } else {
+                    <span>QRCode nicht verfügbar :(</span>
+                }
+            </div>
+        </div>
+    }
+</div>
