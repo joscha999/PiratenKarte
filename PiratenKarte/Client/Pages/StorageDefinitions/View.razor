@@ -1,4 +1,5 @@
 ﻿@page "/storagedefinitions/view/{Id:guid}"
+@inherits AuthorizedComponentBase
 
 <div class="container pt-4">
     @if (Storage == null) {
@@ -8,40 +9,49 @@
             <div class="col-6">
                 <button class="btn btn-primary" @onclick=Back>Zurück</button>
             </div>
-            <div class="col-6" style="display: flex; justify-content: end;">
-                <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
-                    <i class="bi bi-trash3-fill"></i>
-                </button>
-            </div>
+            <PermissionView PermissionFilter="storagedefinitions_delete">
+                <div class="col-6" style="display: flex; justify-content: end;">
+                    <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </div>
+            </PermissionView>
         </div>
 
         <div class="row">
             <h3>Daten</h3>
 
-            <label class="form-label">Name</label>
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" @bind=Storage.Name />
-                <button class="btn btn-success form-control" style="max-width: 3rem;"
-                        @onclick=Update disabled="@Submitting">
-                    <i class="bi bi-pencil-square"></i>
-                </button>
-            </div>
-            <FormError Error=@NameError />
+
+            <FormInput Title="Name" @bind-Value=Storage.Name Disabled=Submitting
+                       SaveClicked=Update EditPermission="storagedefinitions_update"
+                       ErrorBag=ErrorBag ErrorKey="Storage.Name" ShowEditButton=true />
 
             <label class="form-label">Position <a href="@Storage.Position.ToURL()">Auf Karte anzeigen</a></label>
-            <div class="input-group mb-3">
-                <input type="number" class="form-control" @bind=ObjLatitude />
-                <span class="input-group-text">°</span>
-                <input type="number" class="form-control" @bind=ObjLongitude />
-                <span class="input-group-text">°</span>
-                <button class="btn btn-light form-control" style="max-width: 3rem;" disabled>
-                    <i class="bi bi-geo-alt-fill"></i>
-                </button>
-                <button class="btn btn-success form-control" style="max-width: 3rem;"
-                    @onclick=Update disabled="@Submitting">
-                    <i class="bi bi-pencil-square"></i>
-                </button>
-            </div>
+            <PermissionView PermissionFilter="objects_update">
+                <Authorized>
+                    <div class="input-group mb-3">
+                        <input type="number" class="form-control" @bind=ObjLatitude />
+                        <span class="input-group-text">°</span>
+                        <input type="number" class="form-control" @bind=ObjLongitude />
+                        <span class="input-group-text">°</span>
+                        <button class="btn btn-light form-control" style="max-width: 3rem;" disabled>
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </button>
+                        <button class="btn btn-success form-control" style="max-width: 3rem;"
+                            @onclick=Update disabled="@Submitting">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </div>
+                </Authorized>
+                <UnAuthorized>
+                    <div class="input-group">
+                        <input type="number" class="form-control" value="@ObjLatitude" disabled />
+                        <span class="input-group-text">°</span>
+                        <input type="number" class="form-control" value="@ObjLongitude" disabled />
+                        <span class="input-group-text">°</span>
+                    </div>
+                </UnAuthorized>
+            </PermissionView>
         </div>
     }
 </div>

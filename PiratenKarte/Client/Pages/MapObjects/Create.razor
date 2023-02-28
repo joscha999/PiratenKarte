@@ -1,4 +1,5 @@
 ﻿@page "/mapobjects/create/{Latitude:double?}/{Longitude:double?}"
+@inherits AuthorizedComponentBase
 
 @if (StorageDefinitions == null) {
     <span>Lädt ...</span>
@@ -10,7 +11,7 @@
             <div class="mb-3">
                 <label for="input_name" class="form-label">Name *</label>
                 <InputText class="form-control" id="input_name" @bind-Value=Object.Name />
-                <FormError Error=@NameError />
+                <FormError ErrorBag=ErrorBag Key="Object.Name" />
             </div>
             <div class="mb-3">
                 <label for="input_description" class="form-label">Beschreibung</label>

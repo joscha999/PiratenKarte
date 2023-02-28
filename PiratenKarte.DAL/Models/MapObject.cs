@@ -1,6 +1,6 @@
 ﻿namespace PiratenKarte.DAL.Models;
 
-public class MapObject {
+public class MapObject : IDbIdentifier {
     public Guid Id { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }

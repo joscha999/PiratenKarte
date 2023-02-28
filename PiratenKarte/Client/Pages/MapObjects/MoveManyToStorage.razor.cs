@@ -10,9 +10,9 @@ public partial class MoveManyToStorage {
     [Inject]
     public required ParameterPassService Params { get; init; }
     [Inject]
-    public required NavigationManager NavManager { get; init; }
-    [Inject]
     public required HttpClient Http { get; init; }
+
+    protected override string PermissionFilter => "objects_update";
 
     private List<MapObject>? Objects;
 

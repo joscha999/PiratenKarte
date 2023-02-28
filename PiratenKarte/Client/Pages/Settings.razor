@@ -1,12 +1,23 @@
 ﻿@page "/settings"
 
 <div class="container mt-3">
-    <h3>Lokale Einstellungen</h3>
+    <div class="row mb-3">
+        <div class="col-6">
+            <button class="btn btn-primary" @onclick=Back>Zurück</button>
+        </div>
+        <div class="col-6" style="display: flex; justify-content: end;">
+            <button class="btn btn-danger" @onclick=Logout>Ausloggen</button>
+        </div>
+    </div>
 
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" @bind=UseLocalStorage>
-        <label class="form-check-label">
-            Einstellungen lokal Speichern (Nutzt lokalen Speicher des Browsers, wie Cookies, nur besser!)
-        </label>
+    <div class="row">
+        <h3>Lokale Einstellungen</h3>
+
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" @bind=UseLocalStorage>
+            <label class="form-check-label">
+                Einstellungen lokal Speichern (Nutzt lokalen Speicher des Browsers, wie Cookies, nur besser!)
+            </label>
+        </div>
     </div>
 </div>

@@ -1,0 +1,26 @@
+﻿@page "/users/list"
+@inherits AuthorizedComponentBase
+
+<div class="container pt-4">
+    @if (Users == null) {
+        <span>Lädt ...</span>
+    } else {
+        <Pagination ChangePage=ChangePage CurrentPage=Page TotalItems=TotalItems RightAlign=true @bind-ItemsPerPage=ItemsPerPage />
+
+        <ListView Items=Users.Data>
+            <HeaderFragment>
+                <TableRow>
+                    <th scope="col">Name</th>
+                    <th scope="col">Gruppen</th>
+                </TableRow>
+            </HeaderFragment>
+
+            <RowFragment>
+                <td><a href="@("/users/view/" + context.Item.Id)">@context.Item.Username</a></td>
+                <td></td>
+            </RowFragment>
+        </ListView>
+
+        <Pagination ChangePage=ChangePage CurrentPage=Page TotalItems=TotalItems RightAlign=true @bind-ItemsPerPage=ItemsPerPage />
+    }
+</div>

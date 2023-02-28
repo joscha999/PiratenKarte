@@ -56,12 +56,18 @@ public partial class PMap {
     };
 
     protected override async Task OnInitializedAsync() {
-        if (SetObject != null) {
-            Mode = MapMode.Chose;
+        if (string.IsNullOrEmpty(StateService.Current.AuthToken)) {
+            NavManager.NavigateTo("/signin");
+            return;
         }
 
-        MapObjects = await Http.GetFromJsonAsync<List<MapObject>>("MapObjects/GetMap");
-        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
+        if (SetObject != null)
+            Mode = MapMode.Chose;
+
+        if (StateService.Current.Permissions.Any(p => p.Key == "objects_read"))
+            MapObjects = await Http.GetFromJsonAsync<List<MapObject>>("MapObjects/GetMap");
+        if (StateService.Current.Permissions.Any(p => p.Key == "storagedefinitions_read"))
+            StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
 
         if (MapRendered)
             await CreateMarkersAsync();

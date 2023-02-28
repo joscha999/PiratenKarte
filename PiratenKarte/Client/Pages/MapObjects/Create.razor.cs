@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
-using System.Globalization;
+using PiratenKarte.Shared.Validation;
 using System.Net.Http.Json;
 
 namespace PiratenKarte.Client.Pages.MapObjects;
@@ -17,6 +17,8 @@ public partial class Create {
     [Inject]
     public required NavigationManager Nav { get; init; }
 
+    protected override string PermissionFilter => "objects_create";
+
     private MapObject Object = new MapObject { Name = "" };
     private List<StorageDefinition>? StorageDefinitions;
 
@@ -25,7 +27,7 @@ public partial class Create {
 
     private bool Submitting;
 
-    private string? NameError;
+    private readonly ErrorBag ErrorBag = new ErrorBag();
 
     protected override async Task OnInitializedAsync() {
         StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
@@ -41,14 +43,16 @@ public partial class Create {
         Latitude = 0;
         Longitude = 0;
         Object = new MapObject { Name = "" };
-        NameError = null;
+        ErrorBag.Clear();
     }
 
     private async Task SaveObject(bool toMap) {
-        NameError = null;
+        ErrorBag.Clear();
 
-        if (string.IsNullOrWhiteSpace(Object.Name)) {
-            NameError = "Name muss gesetzt sein!";
+        if (string.IsNullOrWhiteSpace(Object.Name))
+            ErrorBag.Fail("Object.Name", "Name muss gesetzt sein!");
+
+        if (ErrorBag.AnyError) {
             StateHasChanged();
             return;
         }

@@ -1,4 +1,5 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using PiratenKarte.Client.Services;
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">PiratenKarte</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -10,25 +11,59 @@
 <div class="@NavMenuCssClass nav-scrollable">
     <div style="height: 100%; justify-content: space-between; display: flex; flex-direction: column;">
         <nav class="flex-column">
-            <NavButton Href="" URLMatch="^\d+\.\d*\/\d+\.\d*\/$" Title="Karte" Icon="bi bi-map-fill" MatchEmpty=true />
-            <NavButton Title="Objekte" Icon="bi bi-boxes" URLMatch="^mapobjects.*">
-                <NavButton Href="mapobjects/list" URLMatch="^mapobjects\/list.*" Title="Alle" Icon="bi bi-list-ul" />
-                <NavButton Href="mapobjects/create" URLMatch="^mapobjects\/create.*" Title="Neu" Icon="bi bi-plus-square-fill" />
-            </NavButton>
+            <NavButton Href="" URLMatch="^\d+\.?\d*\/\d+\.?\d*\/$" Title="Karte" Icon="bi bi-map-fill" MatchEmpty=true />
 
-            <NavButton Title="Lager" Icon="bi bi-building-fill" URLMatch="^storagedefinitions.*">
-                <NavButton Href="storagedefinitions/list" URLMatch="^storagedefinitions\/list.*" Title="Alle" Icon="bi bi-list-ul" />
-                <NavButton Href="storagedefinitions/create" URLMatch="^storagedefinitions\/create.*" Title="Neu" Icon="bi bi-plus-square-fill" />
-            </NavButton>
+            <PermissionView PermissionFilter="objects_.*">
+                <NavButton Title="Objekte" Icon="bi bi-boxes" URLMatch="^mapobjects.*">
+                    <PermissionView PermissionFilter="objects_read">
+                        <NavButton Href="mapobjects/list" URLMatch="^mapobjects\/list.*"
+                                   Title="Alle" Icon="bi bi-list-ul" />
+                    </PermissionView>
+                    <PermissionView PermissionFilter="objects_create">
+                        <NavButton Href="mapobjects/create" URLMatch="^mapobjects\/create.*"
+                                   Title="Neu" Icon="bi bi-plus-square-fill" />
+                    </PermissionView>
+                </NavButton>
+            </PermissionView>
+
+            <PermissionView PermissionFilter="storagedefinitions_.*">
+                <NavButton Title="Lager" Icon="bi bi-building-fill" URLMatch="^storagedefinitions.*">
+                    <PermissionView PermissionFilter="storagedefinitions_read">
+                        <NavButton Href="storagedefinitions/list" URLMatch="^storagedefinitions\/list.*"
+                                   Title="Alle" Icon="bi bi-list-ul" />
+                    </PermissionView>
+                    <PermissionView PermissionFilter="storagedefinitions_create">
+                        <NavButton Href="storagedefinitions/create" URLMatch="^storagedefinitions\/create.*"
+                                   Title="Neu" Icon="bi bi-plus-square-fill" />
+                    </PermissionView>
+                </NavButton>
+            </PermissionView>
+
+            <PermissionView PermissionFilter="users_.*">
+                <NavButton Title="Benutzer" Icon="bi bi-people-fill" URLMatch="^users.*">
+                    <PermissionView PermissionFilter="users_read">
+                        <NavButton Href="users/list" URLMatch="^users\/list.*"
+                                   Title="Alle" Icon="bi bi-person-lines-fill" />
+                    </PermissionView>
+                    <PermissionView PermissionFilter="users_create">
+                        <NavButton Href="users/create" URLMatch="^users\/create.*"
+                                   Title="Neu" Icon="bi bi-person-fill-add" />
+                    </PermissionView>
+                </NavButton>
+            </PermissionView>
         </nav>
 
         <nav class="flex-column">
+            <NavButton Href=@("users/view/" + State.Current.User?.Id) Icon="bi bi-person-circle" Title=@State.Current.User?.Username />
             <NavButton Href="settings" Icon="bi bi-gear-fill" Title="Einstellungen" />
         </nav>
     </div>
 </div>
 
 @code {
+    [Inject]
+    public required AppStateService State { get; init; }
+
     private bool CollapseNavMenu = true;
 
     private string? NavMenuCssClass => CollapseNavMenu ? "collapsed" : "";

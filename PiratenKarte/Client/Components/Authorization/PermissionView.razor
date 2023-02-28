@@ -1,0 +1,9 @@
+﻿@if (CanView()) {
+    if (ChildContent != null) {
+        @ChildContent
+    } else {
+        @Authorized
+    }
+} else {
+    @UnAuthorized
+}

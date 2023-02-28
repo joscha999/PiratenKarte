@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PiratenKarte.Server.Authorization;
 
 namespace PiratenKarte.Server.Controllers;
 

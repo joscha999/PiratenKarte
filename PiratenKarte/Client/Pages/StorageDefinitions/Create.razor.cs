@@ -26,6 +26,8 @@ public partial class Create {
         set => Storage.Position = new LatitudeLongitude(Storage.Position.Latitude, value);
     }
 
+    protected override string PermissionFilter => "storagedefinitions_create";
+
     private void Reset() {
         Storage = new StorageDefinition { Name = "" };
         NameError = null;

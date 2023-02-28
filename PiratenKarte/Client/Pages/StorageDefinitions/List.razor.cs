@@ -13,10 +13,8 @@ public partial class List {
 
     [Inject]
     public required HttpClient Http { get; init; }
-    [Inject]
-    public required NavigationManager NavManager { get; init; }
-    [Inject]
-    public required AppStateService StateService { get; init; }
+
+    protected override string PermissionFilter => "storagedefinitions_read";
 
     private int Page;
     private int ItemsPerPage = 10;

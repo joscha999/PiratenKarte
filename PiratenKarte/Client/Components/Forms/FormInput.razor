@@ -1,0 +1,35 @@
+﻿@typeparam T
+
+@if (!string.IsNullOrEmpty(Title)) {
+    <label class="form-label">@Title</label>
+}
+
+<div class="input-group">
+    <PermissionView PermissionFilter=@Permission>
+        <Authorized>
+            @if (Type == FormInputType.TextArea) {
+                <textarea class="form-control" @bind=InternalValue></textarea>
+            } else {
+                <input type="@Type.ToString().ToLower()" class="form-control" @bind=InternalValue />
+            }
+        </Authorized>
+        <UnAuthorized>
+            <input type="@Type.ToString().ToLower()" class="form-control" value="@Value" disabled />
+        </UnAuthorized>
+    </PermissionView>
+
+    @ChildContent
+
+    @if (ShowEditButton) {
+        <PermissionView PermissionFilter=@Permission>
+            <button class="btn btn-success form-control" style="max-width: 3rem;"
+                    @onclick=SaveClicked disabled="@Disabled">
+                <i class="bi bi-pencil-square"></i>
+            </button>
+        </PermissionView>
+    }
+</div>
+
+@if (ErrorBag != null && ErrorKey != null) {
+    <FormError ErrorBag=ErrorBag Key=@ErrorKey />
+}

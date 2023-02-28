@@ -1,6 +1,6 @@
 ﻿namespace PiratenKarte.DAL.Models;
 
-public class StorageDefinition {
+public class StorageDefinition : IDbIdentifier {
     public Guid Id { get; set; }
     public required string Name { get; set; }
     public LatitudeLongitude Position { get; set; }

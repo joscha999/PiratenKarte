@@ -1,0 +1,32 @@
+﻿@page "/users/create"
+@inherits AuthorizedComponentBase
+
+<div class="container pt-4">
+    <h1>Neuer Benutzer</h1>
+
+    <div class="mb-3">
+        <label class="form-label">Benutzername *</label>
+        <input type="text" class="form-control" @bind=User.Username />
+        <FormError ErrorBag=ErrorBag Key="User.Username" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Passwort (Mindestens 12 Zeichen)</label>
+        <div class="mb-3 input-group">
+            <input type="@(ShowPassword ? "text" : "password")" class="form-control" @bind=Password />
+            <button class="btn btn-primary" type="button" @onclick=ToggleShowPassword>
+                <i class="bi @(ShowPassword ? "bi-eye-slash-fill" : "bi-eye-fill")"></i>
+            </button>
+            <button class="btn btn-primary" type="button" @onclick=RandomizePassword>
+                <i class="bi bi-dice-5-fill"></i>
+            </button>
+        </div>
+        <FormError ErrorBag=ErrorBag Key="User.Password" />
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" disabled=@Submitting @onclick=SaveObject>
+            Erstellen
+        </button>
+    </div>
+</div>

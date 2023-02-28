@@ -3,28 +3,12 @@ using PiratenKarte.DAL.Models;
 
 namespace PiratenKarte.DAL.Repository;
 
-public class StorageDefinitionRepository {
-    private readonly ILiteCollection<StorageDefinition> Col;
-    private readonly DB DB;
+public class StorageDefinitionRepository : RepositoryBase<StorageDefinition> {
+    public override string CollectionName => "StorageDefinitions";
 
-    public StorageDefinitionRepository(DB db) {
-        Col = db.LDB.GetCollection<StorageDefinition>("StorageDefinitions");
-        Col.EnsureIndex(mo => mo.Id);
+    public StorageDefinitionRepository(DB db) : base(db) { }
 
-        DB = db;
-    }
-
-    public int Count() => Col.Count();
-
-    public IEnumerable<StorageDefinition> GetAll() => Col.FindAll();
-    public IEnumerable<StorageDefinition> GetPaged(int offset, int count)
-        => Col.Query().Skip(offset).Limit(count).ToEnumerable();
-    public StorageDefinition Get(Guid id) => Col.FindById(id);
-
-    public Guid Insert(StorageDefinition obj) => Col.Insert(obj);
-    public void Update(StorageDefinition obj) => Col.Update(obj);
-
-    public void Delete(Guid id) {
+    public override void Delete(Guid id) {
         var storage = Col.FindById(id);
         if (storage == null)
             return;
@@ -36,6 +20,9 @@ public class StorageDefinitionRepository {
 
         Col.Delete(id);
     }
+
+    internal override ILiteQueryable<StorageDefinition> Includes(ILiteQueryable<StorageDefinition> query) => query;
+    internal override ILiteCollection<StorageDefinition> Includes(ILiteCollection<StorageDefinition> query) => query;
 
 #if DEBUG
     internal void AddTestData() {

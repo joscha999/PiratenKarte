@@ -3,6 +3,7 @@ using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using PiratenKarte.Client.Components.Modals;
 using PiratenKarte.Shared;
+using PiratenKarte.Shared.Validation;
 using System.Net.Http.Json;
 
 namespace PiratenKarte.Client.Pages.StorageDefinitions;
@@ -16,8 +17,6 @@ public partial class View {
 
     [Inject]
     public required HttpClient Http { get; init; }
-    [Inject]
-    public required NavigationManager NavManager { get; init; }
 
     private StorageDefinition? Storage;
 
@@ -41,7 +40,9 @@ public partial class View {
         }
     }
 
-    private string? NameError;
+    protected override string PermissionFilter => "storagedefinitions_read";
+
+    private readonly ErrorBag ErrorBag = new ErrorBag();
     private bool Submitting;
 
     protected override async Task OnParametersSetAsync() {
@@ -58,10 +59,12 @@ public partial class View {
     }
 
     private async Task Update() {
-        NameError = null;
+        ErrorBag.Clear();
 
-        if (string.IsNullOrEmpty(Storage?.Name)) {
-            NameError = "Name muss gesetzt sein!";
+        if (string.IsNullOrEmpty(Storage?.Name))
+            ErrorBag.Fail("Storage.Name", "Name muss gesetzt sein!");
+
+        if (ErrorBag.AnyError) {
             StateHasChanged();
             return;
         }

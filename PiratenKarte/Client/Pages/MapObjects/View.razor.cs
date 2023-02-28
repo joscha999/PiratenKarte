@@ -5,6 +5,7 @@ using PiratenKarte.Client.Components.Modals;
 using PiratenKarte.Client.Models;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
+using PiratenKarte.Shared.Validation;
 using System.Globalization;
 using System.Net.Http.Json;
 
@@ -20,9 +21,9 @@ public partial class View {
     [Inject]
     public required HttpClient Http { get; init; }
     [Inject]
-    public required NavigationManager NavManager { get; init; }
-    [Inject]
     public required AppSettings Settings { get; init; }
+
+    protected override string PermissionFilter => "objects_read";
 
     private MapObject? Object;
     private List<StorageDefinition>? StorageDefinitions;
@@ -63,7 +64,7 @@ public partial class View {
         }
     }
 
-    private string? NameError;
+    private readonly ErrorBag ErrorBag = new ErrorBag();
     private bool Submitting;
 
     protected override async Task OnParametersSetAsync() {
@@ -125,10 +126,12 @@ public partial class View {
     }
 
     private async Task UpdateObject() {
-        NameError = null;
+        ErrorBag.Clear();
 
-        if (string.IsNullOrWhiteSpace(Object?.Name)) {
-            NameError = "Name muss gesetzt sein!";
+        if (string.IsNullOrWhiteSpace(Object?.Name))
+            ErrorBag.Fail("Object.Name", "Name muss gesetzt sein!");
+
+        if (ErrorBag.AnyError) {
             StateHasChanged();
             return;
         }

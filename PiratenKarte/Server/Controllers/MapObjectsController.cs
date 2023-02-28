@@ -1,35 +1,27 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PiratenKarte.DAL;
+using PiratenKarte.DAL.Repository;
+using PiratenKarte.Server.Authorization;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
 
 namespace PiratenKarte.Server.Controllers;
 
-[ApiController]
-[Route("[controller]/[action]")]
-public class MapObjectsController : ControllerBase {
-	private readonly DB DB;
-	private readonly IMapper Mapper;
+public class MapObjectsController : CrudController<MapObject, DAL.Models.MapObject> {
+	protected override RepositoryBase<DAL.Models.MapObject> Repository => DB.MapObjectRepo;
 
-	public MapObjectsController(DB db, IMapper mapper) {
-		DB = db;
-		Mapper = mapper;
-	}
+	public override string PermissionBaseName => "objects";
 
-	[HttpGet]
-	public IEnumerable<MapObject> GetMap() => DB.MapObjectRepo.GetMap().Select(Mapper.Map<MapObject>);
-    [HttpGet]
-    public MapObject Get(Guid id) => Mapper.Map<MapObject>(DB.MapObjectRepo.Get(id));
+    public MapObjectsController(DB db, IMapper mapper) : base(db, mapper) { }
 
     [HttpGet]
-	public PagedData<MapObject> GetPaged(int page, int itemsPerPage) => new PagedData<MapObject> {
-		Data = DB.MapObjectRepo.GetPaged(page * itemsPerPage, itemsPerPage).Select(Mapper.Map<MapObject>).ToList(),
-		TotalCount = DB.MapObjectRepo.Count()
-	};
+	[Permission("objects_read")]
+    public IEnumerable<MapObject> GetMap() => DB.MapObjectRepo.GetMap().Select(Mapper.Map<MapObject>);
 
-	[HttpPost]
-	public Guid Create(CreateNewObject request) {
+    [HttpPost]
+    [Permission("objects_create")]
+    public Guid Create(CreateNewObject request) {
         var obj = Mapper.Map<DAL.Models.MapObject>(request.Object);
 		obj.Storage = request.StorageId == null ? null : DB.StorageDefinitionRepo.Get(request.StorageId.Value);
 
@@ -37,7 +29,8 @@ public class MapObjectsController : ControllerBase {
     }
 
 	[HttpPost]
-	public void CreateMany(CreateNewObjectBulk request) {
+    [Permission("objects_create")]
+    public void CreateMany(CreateNewObjectBulk request) {
 		var storage = request.StorageId == null ? null : DB.StorageDefinitionRepo.Get(request.StorageId.Value);
 
 		for (int i = 0; i < request.Count; i++) {
@@ -48,19 +41,16 @@ public class MapObjectsController : ControllerBase {
 		}
 	}
 
-    [HttpPost]
-	public void Update(MapObject obj) => DB.MapObjectRepo.Update(Mapper.Map<DAL.Models.MapObject>(obj));
-
 	[HttpPost]
-	public void Delete([FromBody] Guid id) => DB.MapObjectRepo.Delete(id);
-	[HttpPost]
-	public void DeleteMany([FromBody] IEnumerable<Guid> ids) {
+    [Permission("objects_delete")]
+    public void DeleteMany([FromBody] IEnumerable<Guid> ids) {
 		foreach (var id in ids)
 			DB.MapObjectRepo.Delete(id);
 	}
 
 	[HttpPost]
-	public void AddComment(NewObjectComment comment) {
+    [Permission("objects_comments_create")]
+    public void AddComment(NewObjectComment comment) {
 		var obj = DB.MapObjectRepo.Get(comment.ObjectId);
 		if (obj.Comments == null)
 			obj.Comments = new List<DAL.Models.ObjectComment>();
@@ -70,7 +60,8 @@ public class MapObjectsController : ControllerBase {
 	}
 
 	[HttpPost]
-	public void DeleteComment(DeleteObjectComment request) {
+    [Permission("objects_comments_delete")]
+    public void DeleteComment(DeleteObjectComment request) {
 		var obj = DB.MapObjectRepo.Get(request.ObjectId);
         if (obj.Comments == null)
             obj.Comments = new List<DAL.Models.ObjectComment>();
@@ -80,7 +71,8 @@ public class MapObjectsController : ControllerBase {
     }
 
 	[HttpPost]
-	public void SetStorage(SetObjectStorage request) {
+    [Permission("objects_edit")]
+    public void SetStorage(SetObjectStorage request) {
 		var obj = DB.MapObjectRepo.Get(request.ObjectId);
 
         obj.Storage = request.StorageId == null ? null : DB.StorageDefinitionRepo.Get(request.StorageId.Value);
@@ -89,7 +81,8 @@ public class MapObjectsController : ControllerBase {
     }
 
 	[HttpPost]
-	public void SetStorageMany(SetObjectStorageMany request) {
+    [Permission("objects_edit")]
+    public void SetStorageMany(SetObjectStorageMany request) {
 		var storage = request.StorageId == null ? null : DB.StorageDefinitionRepo.Get(request.StorageId.Value);
 
 		foreach (var objId in request.ObjectIds) {
@@ -100,7 +93,8 @@ public class MapObjectsController : ControllerBase {
 	}
 
 	[HttpPost]
-	public void UpdatePosition(SetObjectPosition request) {
+    [Permission("objects_edit")]
+    public void UpdatePosition(SetObjectPosition request) {
 		var obj = DB.MapObjectRepo.Get(request.ObjectId);
 
 		obj.Storage = null;

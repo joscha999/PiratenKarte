@@ -9,9 +9,13 @@ public class DB {
 
 	public readonly MapObjectRepository MapObjectRepo;
     public readonly StorageDefinitionRepository StorageDefinitionRepo;
+    public readonly UserRepository UserRepo;
+    public readonly TokenRepository TokenRepo;
+    public readonly PermissionRepository PermissionRepo;
 
 	public DB(string path) {
         BsonMapper.Global.Entity<MapObject>().DbRef(mo => mo.Storage, "StorageDefinitions");
+        BsonMapper.Global.Entity<Token>().DbRef(t => t.User, "Users");
 
         BsonMapper.Global.RegisterType(
             obj => {
@@ -27,6 +31,12 @@ public class DB {
 
 		MapObjectRepo = new MapObjectRepository(this);
         StorageDefinitionRepo = new StorageDefinitionRepository(this);
+        UserRepo = new UserRepository(this);
+        TokenRepo = new TokenRepository(this);
+        PermissionRepo = new PermissionRepository(this);
+
+        PermissionRepo.AddDeaultPermissions();
+        UserRepo.AddDefaultUser();
 
 #if DEBUG
         MapObjectRepo.AddTestData();
