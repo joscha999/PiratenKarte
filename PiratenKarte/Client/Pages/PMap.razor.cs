@@ -53,7 +53,7 @@ public partial class PMap {
             Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
             TileSize = 512,
             ZoomOffset = -1,
-            MaxZoom = 19,
+            MaxZoom = 19
         }
     };
 
@@ -93,13 +93,30 @@ public partial class PMap {
         MapRendered = true;
         if (MapObjects != null && StorageDefinitions != null)
             await CreateMarkersAsync();
+
+        await ClampMap();
     }
 
     private async Task UpdateState(Event? e) {
-        var center = await Map.GetCenter();
+        var center = await ClampMap();
+        if (center == null)
+            return;
+
         StateService.Current.MapPosition = new LatitudeLongitude(center.Lat, center.Lng);
         StateService.Current.MapZoom = await Map.GetZoom();
         StateService.Write();
+    }
+
+    private async Task<LatLng?> ClampMap() {
+        var center = await Map.GetCenter();
+        if (center == null)
+            return null;
+
+        center.Lat = Math.Clamp(center.Lat, -90, 90);
+        center.Lng = Math.Clamp(center.Lng, -180, 180);
+
+        await Map.SetView(center);
+        return center;
     }
 
     private async Task CreateMarkersAsync() {
@@ -136,10 +153,11 @@ public partial class PMap {
         }
     }
 
-    private void BtnModeClicked() {
+    private async Task BtnModeClicked() {
         Mode = Mode == MapMode.View ? MapMode.Chose : MapMode.View;
         SetObject = null;
 
+        await ClampMap();
         StateHasChanged();
     }
 

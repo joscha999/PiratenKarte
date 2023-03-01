@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
+using PiratenKarte.Client.Extensions;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
+using PiratenKarte.Shared.ResponseModels;
 using PiratenKarte.Shared.Validation;
 using System.Net.Http.Json;
 
@@ -44,12 +46,27 @@ public partial class Create {
             User = User,
             Password = Password
         });
-        var str = await result.Content.ReadAsStringAsync();
-        var id = Guid.Parse(str.Trim('\"'));
 
-        NavManager.NavigateTo($"/users/view/{id}/");
-        Reset();
+        var resultModel = await result.ReadResultAsync<CreateUserResult>();
+
+        if (resultModel == null) {
+            ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden.");
+        } else {
+            if (resultModel.ValidationFailure) {
+                ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden.");
+            } else if (resultModel.UsernameAlreadyUsed) {
+                ErrorBag.Fail("ServerError", "Der angegebene Benutzername ist bereits in benutzung.");
+            }
+        }
+
         Submitting = false;
+        if (ErrorBag.AnyError) {
+            StateHasChanged();
+            return;
+        }
+
+        NavManager.NavigateTo($"/users/view/{resultModel!.Id}/");
+        Reset();
     }
 
     private void RandomizePassword() {

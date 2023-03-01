@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using PiratenKarte.Shared;
+using PiratenKarte.Shared.Validation;
 using System.Net.Http.Json;
 
 namespace PiratenKarte.Client.Pages.StorageDefinitions;
@@ -14,7 +15,7 @@ public partial class Create {
 
     private bool Submitting;
 
-    private string? NameError;
+    private ErrorBag ErrorBag = new ErrorBag();
 
     private double Latitude {
         get => Storage.Position.Latitude;
@@ -30,14 +31,20 @@ public partial class Create {
 
     private void Reset() {
         Storage = new StorageDefinition { Name = "" };
-        NameError = null;
+        ErrorBag.Clear();
     }
 
     private async Task SaveObject() {
-        NameError = null;
+        ErrorBag.Clear();
 
-        if (string.IsNullOrEmpty(Storage.Name)) {
-            NameError = "Name muss gesetzt sein!";
+        if (string.IsNullOrWhiteSpace(Storage.Name))
+            ErrorBag.Fail("Storage.Name", "Name muss gesetzt sein!");
+        if (Latitude < -90 || Latitude > 90 || Longitude < -180 || Longitude > 180) {
+            ErrorBag.Fail("Storage.Position", "Längengrad muss zwischen -90 und 90 liegen. " +
+                "Breitengrad muss zwischen -180 und 180 liegen");
+        }
+
+        if (ErrorBag.AnyError) {
             StateHasChanged();
             return;
         }

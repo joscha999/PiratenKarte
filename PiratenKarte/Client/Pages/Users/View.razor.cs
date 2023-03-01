@@ -1,8 +1,8 @@
 using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using PiratenKarte.Client.Components.Modals;
-using PiratenKarte.Client.Services;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.Validation;
@@ -33,6 +33,13 @@ public partial class View {
     private readonly ErrorBag ErrorBag = new ErrorBag();
     private bool Submitting;
 
+    protected override bool CanView() {
+        if (Id == AuthStateService.Current.User?.Id)
+            return true;
+
+        return base.CanView();
+    }
+
     protected override async Task OnParametersSetAsync() {
         await Reload();
         await base.OnParametersSetAsync();
@@ -40,7 +47,12 @@ public partial class View {
 
     private async Task Reload() {
         Submitting = true;
-        User = await Http.GetFromJsonAsync<User>($"Users/Get?id={Id}");
+
+        if (Id == AuthStateService.Current.User?.Id) {
+            User = await Http.GetFromJsonAsync<User>($"Users/GetSelf");
+        } else {
+            User = await Http.GetFromJsonAsync<User>($"Users/Get?id={Id}");
+        }
 
         if (AuthStateService.HasExact("permissions_update")) {
             Permissions = await Http.GetFromJsonAsync<List<Permission>>($"Permissions/GetVisibleFor?id={Id}");
@@ -51,6 +63,11 @@ public partial class View {
 
         Submitting = false;
         StateHasChanged();
+    }
+
+    private async Task PasswordKeyPressed(KeyboardEventArgs args) {
+        if (args.Code == "Enter" || args.Code == "NumpadEnter")
+            await UpdatePassword();
     }
 
     private async Task Update() => await Update(false);
@@ -65,12 +82,14 @@ public partial class View {
         ErrorBag.Clear();
 
         User.Validate(ErrorBag);
-        if (string.IsNullOrWhiteSpace(Password))
-            ErrorBag.Fail("User.Password", "Passwort muss gesetzt sein!");
-        if (Password.Length < 12)
-            ErrorBag.Fail("User.Password", "Passwort muss mindestens 12 Zeichen lang sein!");
-        if (Password != PasswordRepeat)
-            ErrorBag.Fail("User.Password", "Passwort und Wiederholung müssen gleich sein!");
+        if (submitPassword) {
+            if (string.IsNullOrWhiteSpace(Password))
+                ErrorBag.Fail("User.Password", "Passwort muss gesetzt sein!");
+            if (Password.Length < 12)
+                ErrorBag.Fail("User.Password", "Passwort muss mindestens 12 Zeichen lang sein!");
+            if (Password != PasswordRepeat)
+                ErrorBag.Fail("User.Password", "Passwort und Wiederholung müssen gleich sein!");
+        }
 
         if (ErrorBag.AnyError) {
             StateHasChanged();
@@ -78,12 +97,20 @@ public partial class View {
         }
 
         Submitting = true;
-        await Http.PostAsJsonAsync("Users/Update", new UserData {
+        var result = await Http.PostAsJsonAsync("Users/Update", new UserData {
             User = User,
             Password = submitPassword ? Password : null
         });
-        await Reload();
+
+        var success = bool.Parse((await result.Content.ReadAsStringAsync()).Trim('\"'));
         Submitting = false;
+
+        if (success) {
+            await Reload();
+        } else {
+            ErrorBag.Fail("ServerError", "Benutzerdaten können nicht aktualisiert werden.");
+            StateHasChanged();
+        }
     }
 
     private void Back() => NavManager.NavigateTo("/users/list");

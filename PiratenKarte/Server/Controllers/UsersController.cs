@@ -21,6 +21,16 @@ public class UsersController : CrudController<User, DAL.Models.User> {
     [NonAction]
     public override void Update(User item) => throw new InvalidOperationException();
 
+    [HttpGet]
+    [EnsureLoggedIn]
+    public User? GetSelf() {
+        var userId = GetUserId();
+        if (userId == null)
+            return null;
+
+        return Mapper.Map<User>(DB.UserRepo.Get(userId.Value));
+    }
+
     public override void Delete([FromBody] Guid id) {
         var selfId = GetUserId();
         if (selfId == null || selfId == id)
@@ -31,25 +41,35 @@ public class UsersController : CrudController<User, DAL.Models.User> {
 
     [HttpPost]
     [Permission("users_create")]
-    public Guid Create(UserData request) {
-        if (string.IsNullOrEmpty(request.Password))
-            return Guid.Empty;
+    public CreateUserResult Create(UserData request) {
+        if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.User.Username))
+            return new CreateUserResult { UserCreated = false, ValidationFailure = true };
+        if (DB.UserRepo.GetByUsername(request.User.Username) != null)
+            return new CreateUserResult { UserCreated = false, UsernameAlreadyUsed = false };
 
         var user = Mapper.Map<DAL.Models.User>(request.User);
         user.PasswordHash = PasswordHashser.Hash(request.Password);
 
-        return DB.UserRepo.Insert(user);
+        var id = DB.UserRepo.Insert(user);
+        return new CreateUserResult { Id = id, UserCreated = true };
     }
 
     [HttpPost]
     [Permission("users_update")]
-    public void Update(UserData request) {
-        var user = Mapper.Map<DAL.Models.User>(request.User);
+    public bool Update(UserData request) {
+        if (string.IsNullOrEmpty(request.User.Username))
+            return false;
+        if (DB.UserRepo.GetByUsername(request.User.Username) != null)
+            return false;
+
+        var user = DB.UserRepo.Get(request.User.Id);
+        user.Username = request.User.Username;
 
         if (!string.IsNullOrEmpty(request.Password))
             user.PasswordHash = PasswordHashser.Hash(request.Password);
 
         DB.UserRepo.Update(user);
+        return true;
     }
 
     [HttpPost]

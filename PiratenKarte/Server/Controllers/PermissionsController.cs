@@ -36,6 +36,20 @@ public class PermissionsController : PKController {
         return visible;
     }
 
+    [HttpGet]
+    [EnsureLoggedIn]
+    public IEnumerable<Permission> GetSelf() {
+        var userId = GetUserId();
+        if (userId == null)
+            return Enumerable.Empty<Permission>();
+
+        var user = DB.UserRepo.GetWithPermissions(userId.Value);
+        if (user == null)
+            return Enumerable.Empty<Permission>();
+
+        return user.Permissions.Select(Mapper.Map<Permission>);
+    }
+
     [HttpPost]
     [Permission("permissions_update")]
     public void SetPermission(SetPermission request) {

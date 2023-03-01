@@ -30,5 +30,5 @@ public abstract class AuthorizedComponentBase : ComponentBase {
         return base.OnInitializedAsync();
     }
 
-    protected bool CanView() => AuthStateService.HasPattern(PermissionFilter);
+    protected virtual bool CanView() => AuthStateService.HasPattern(PermissionFilter);
 }

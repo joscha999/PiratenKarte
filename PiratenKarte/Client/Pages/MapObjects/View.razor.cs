@@ -130,6 +130,10 @@ public partial class View {
 
         if (string.IsNullOrWhiteSpace(Object?.Name))
             ErrorBag.Fail("Object.Name", "Name muss gesetzt sein!");
+        if (ObjLatitude < -90 || ObjLatitude > 90 || ObjLongitude < -180 || ObjLongitude > 180) {
+            ErrorBag.Fail("Object.Position", "Längengrad muss zwischen -90 und 90 liegen. " +
+                "Breitengrad muss zwischen -180 und 180 liegen");
+        }
 
         if (ErrorBag.AnyError) {
             StateHasChanged();

@@ -7,15 +7,18 @@
     <div class="mb-3">
         <label for="input_name" class="form-label">Name *</label>
         <InputText class="form-control" id="input_name" @bind-Value=Storage.Name />
-        <FormError Error=@NameError />
+        <FormError ErrorBag=ErrorBag Key="Storage.Name" />
     </div>
 
-    <label for="input_lat" class="form-label">Position (Breitengrad, Längengrad)</label>
-    <div class="mb-3 input-group">
-        <InputNumber class="form-control" id="input_lat" @bind-Value=Latitude />
-        <span class="input-group-text">°</span>
-        <InputNumber class="form-control" id="input_lon" @bind-Value=Longitude />
-        <span class="input-group-text">°</span>
+    <div class="mb-3">
+        <label for="input_lat" class="form-label">Position (Breitengrad, Längengrad)</label>
+        <div class="input-group">
+            <InputNumber class="form-control" id="input_lat" @bind-Value=Latitude />
+            <span class="input-group-text">°</span>
+            <InputNumber class="form-control" id="input_lon" @bind-Value=Longitude />
+            <span class="input-group-text">°</span>
+        </div>
+        <FormError ErrorBag=ErrorBag Key="Storage.Position" />
     </div>
 
     <div class="mb-3">

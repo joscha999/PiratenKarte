@@ -51,6 +51,10 @@ public partial class Create {
 
         if (string.IsNullOrWhiteSpace(Object.Name))
             ErrorBag.Fail("Object.Name", "Name muss gesetzt sein!");
+        if (Latitude < -90 || Latitude > 90 || Longitude < -180 || Longitude > 180) {
+            ErrorBag.Fail("Object.Position", "Längengrad muss zwischen -90 und 90 liegen. " +
+                "Breitengrad muss zwischen -180 und 180 liegen");
+        }
 
         if (ErrorBag.AnyError) {
             StateHasChanged();

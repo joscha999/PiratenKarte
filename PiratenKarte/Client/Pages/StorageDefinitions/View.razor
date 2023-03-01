@@ -29,18 +29,21 @@
             <label class="form-label">Position <a href="@Storage.Position.ToURL()">Auf Karte anzeigen</a></label>
             <PermissionView PermissionFilter="objects_update">
                 <Authorized>
-                    <div class="input-group mb-3">
-                        <input type="number" class="form-control" @bind=ObjLatitude />
-                        <span class="input-group-text">°</span>
-                        <input type="number" class="form-control" @bind=ObjLongitude />
-                        <span class="input-group-text">°</span>
-                        <button class="btn btn-light form-control" style="max-width: 3rem;" disabled>
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </button>
-                        <button class="btn btn-success form-control" style="max-width: 3rem;"
-                            @onclick=Update disabled="@Submitting">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="number" class="form-control" @bind=ObjLatitude />
+                            <span class="input-group-text">°</span>
+                            <input type="number" class="form-control" @bind=ObjLongitude />
+                            <span class="input-group-text">°</span>
+                            <button class="btn btn-light form-control" style="max-width: 3rem;" disabled>
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </button>
+                            <button class="btn btn-success form-control" style="max-width: 3rem;"
+                                @onclick=Update disabled="@Submitting">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                        </div>
+                        <FormError ErrorBag=ErrorBag Key="Storage.Position" />
                     </div>
                 </Authorized>
                 <UnAuthorized>
