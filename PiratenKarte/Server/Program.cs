@@ -15,7 +15,7 @@ var settings = JsonSerializer.Deserialize<Settings>(File.ReadAllText("settings.j
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddSingleton(new DB(settings.DbFileName));
+builder.Services.AddSingleton(new DB(settings.DbFileName, settings.AdminPassword));
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddSingleton(settings);
 

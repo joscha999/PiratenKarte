@@ -8,12 +8,10 @@ using PiratenKarte.Shared.RequestModels;
 
 namespace PiratenKarte.Server.Controllers;
 
-public abstract class CrudController : ControllerBase {
+public abstract class CrudController : PKController {
     public abstract string PermissionBaseName { get; }
 }
 
-[ApiController]
-[Route("[controller]/[action]")]
 public abstract class CrudController<TApi, TDb> : CrudController where TDb : IDbIdentifier {
     protected readonly DB DB;
     protected readonly IMapper Mapper;

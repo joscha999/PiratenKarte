@@ -10,11 +10,22 @@
                 <button class="btn btn-primary" @onclick=Back>Zurück</button>
             </div>
             <PermissionView PermissionFilter="users_delete">
-                <div class="col-6" style="display: flex; justify-content: end;">
-                    <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
-                        <i class="bi bi-trash3-fill"></i>
-                    </button>
-                </div>
+                <SelfView Current="Id">
+                    <Self>
+                        <div class="col-6" style="display: flex; justify-content: end;">
+                            <button class="btn btn-danger" disabled>
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </div>
+                    </Self>
+                    <Other>
+                        <div class="col-6" style="display: flex; justify-content: end;">
+                            <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </div>
+                    </Other>
+                </SelfView>
             </PermissionView>
         </div>
 
@@ -28,22 +39,76 @@
             <PermissionView PermissionFilter="users_update">
                 <div class="mb-3">
                     <label class="form-label">Neues Passwort (Mindestens 12 Zeichen)</label>
-                    <div class="input-group">
-                        <input type="@(ShowPassword ? "text" : "password")" class="form-control" @bind=Password />
+                    <div class="input-group mb-3">
+                        <input type="@(ShowPassword ? "text" : "password")" class="form-control"
+                               @bind=Password @bind:event="oninput" @onkeypress=UpdatePassword />
                         <button class="btn btn-primary" type="button" @onclick=ToggleShowPassword>
                             <i class="bi @(ShowPassword ? "bi-eye-slash-fill" : "bi-eye-fill")"></i>
                         </button>
                         <button class="btn btn-primary" type="button" @onclick=RandomizePassword>
                             <i class="bi bi-dice-5-fill"></i>
                         </button>
-                        <button class="btn btn-success form-control" style="max-width: 3rem;"
-                            @onclick=UpdatePassword disabled="@Submitting">
-                            <i class="bi bi-pencil-square"></i>
+                    </div>
+
+                    <label class="form-label">Neues Passwort Wiederholen</label>
+                    <div class="input-group mb-3">
+                        <input type="@(ShowPassword ? "text" : "password")" class="form-control"
+                               @bind=PasswordRepeat @bind:event="oninput" @onkeypress=UpdatePassword />
+                        <button class="btn btn-primary" type="button" @onclick=ToggleShowPassword>
+                            <i class="bi @(ShowPassword ? "bi-eye-slash-fill" : "bi-eye-fill")"></i>
+                        </button>
+                        <button class="btn btn-primary" type="button" @onclick=RandomizePassword>
+                            <i class="bi bi-dice-5-fill"></i>
                         </button>
                     </div>
+
                     <FormError ErrorBag=ErrorBag Key="User.Password" />
+                    <div class="mb-3" style="display: flex; justify-content: end;">
+                        <button class="btn btn-primary" type="button" @onclick=UpdatePassword>
+                            <span>Passwort Aktualisieren</span>
+                        </button>
+                    </div>
                 </div>
             </PermissionView>
         </div>
+
+        <SelfView Current=Id>
+            <Self>
+                <div class="row mb-3">
+                    <h3>Berechtigungen</h3>
+
+                    <div class="col-12">
+                        @if (Permissions == null) {
+                            <span>Lädt ...</span>
+                        } else {
+                            foreach (var p in Permissions) {
+                                <label class="form-label">@p.ReadableName</label><br />
+                            }
+                        }
+                    </div>
+                </div>
+            </Self>
+            <Other>
+                <PermissionView PermissionFilter="permissions_update">
+                    <div class="row mb-3">
+                        <h3>Berechtigungen</h3>
+
+                        <div class="col-12">
+                            @if (Permissions == null) {
+                                <span>Lädt ...</span>
+                            } else {
+                                foreach (var p in Permissions) {
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" checked="@p.Applied"
+                                               @onchange=@(() => TogglePermission(p.Key)) />
+                                        <label class="form-check-label">@p.ReadableName</label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </PermissionView>
+            </Other>
+        </SelfView>
     }
 </div>

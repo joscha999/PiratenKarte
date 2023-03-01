@@ -13,6 +13,8 @@ public partial class List {
 
     [Inject]
     public required HttpClient Http { get; init; }
+    [Inject]
+    public required AppStateService AppStateService { get; init; }
 
     protected override string PermissionFilter => "users_read";
 
@@ -30,8 +32,8 @@ public partial class List {
     }
 
     private async Task ChangePage(int page) {
-        StateService.Current.ItemsPerPage = ItemsPerPage;
-        StateService.Write();
+        AppStateService.Current.ItemsPerPage = ItemsPerPage;
+        AppStateService.Write();
 
         Page = page;
         await Reload();

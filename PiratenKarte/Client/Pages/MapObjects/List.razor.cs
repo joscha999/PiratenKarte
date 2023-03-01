@@ -25,6 +25,8 @@ public partial class List {
     public required AppSettings Settings { get; init; }
     [Inject]
     public required ParameterPassService Params { get; init; }
+    [Inject]
+    public required AppStateService AppStateService { get; init; }
 
     protected override string PermissionFilter => "objects_read";
 
@@ -53,15 +55,15 @@ public partial class List {
     }
 
     protected override async Task OnInitializedAsync() {
-        ItemsPerPage = StateService.Current.ItemsPerPage;
+        ItemsPerPage = AppStateService.Current.ItemsPerPage;
 
         await Reload();
         await base.OnInitializedAsync();
     }
 
     private async Task ChangePage(int page) {
-        StateService.Current.ItemsPerPage = ItemsPerPage;
-        StateService.Write();
+        AppStateService.Current.ItemsPerPage = ItemsPerPage;
+        AppStateService.Write();
 
         Page = page;
         await Reload();

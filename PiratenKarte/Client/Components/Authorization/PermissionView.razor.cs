@@ -6,7 +6,7 @@ namespace PiratenKarte.Client.Components.Authorization;
 
 public partial class PermissionView {
     [Inject]
-    public required AppStateService StateService { get; init; }
+    public required AuthenticationStateService StateService { get; init; }
 
     [Parameter]
     public RenderFragment? Authorized { get; init; }
@@ -18,14 +18,9 @@ public partial class PermissionView {
     public required string PermissionFilter { get; init; }
 
     public bool CanView() {
-        if (StateService.Current.User == null)
-            return false;
-        if (StateService.Current.Permissions.Count == 0)
-            return false;
-
         if (PermissionFilter == "*")
             return true;
 
-        return StateService.Current.Permissions.Any(p => Regex.IsMatch(p.Key, PermissionFilter));
+        return StateService.HasPattern(PermissionFilter);
     }
 }

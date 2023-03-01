@@ -13,7 +13,7 @@ public class DB {
     public readonly TokenRepository TokenRepo;
     public readonly PermissionRepository PermissionRepo;
 
-	public DB(string path) {
+	public DB(string path, string? adminPassword) {
         BsonMapper.Global.Entity<MapObject>().DbRef(mo => mo.Storage, "StorageDefinitions");
         BsonMapper.Global.Entity<Token>().DbRef(t => t.User, "Users");
 
@@ -36,7 +36,7 @@ public class DB {
         PermissionRepo = new PermissionRepository(this);
 
         PermissionRepo.AddDeaultPermissions();
-        UserRepo.AddDefaultUser();
+        UserRepo.AddDefaultAdmin(adminPassword);
 
 #if DEBUG
         MapObjectRepo.AddTestData();

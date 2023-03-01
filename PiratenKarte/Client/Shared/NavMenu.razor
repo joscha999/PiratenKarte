@@ -54,7 +54,8 @@
         </nav>
 
         <nav class="flex-column">
-            <NavButton Href=@("users/view/" + State.Current.User?.Id) Icon="bi bi-person-circle" Title=@State.Current.User?.Username />
+            <NavButton Href=@("users/view/" + AuthStateService.Current.User?.Id)
+                       Icon="bi bi-person-circle" Title=@AuthStateService.Current.User?.Username />
             <NavButton Href="settings" Icon="bi bi-gear-fill" Title="Einstellungen" />
         </nav>
     </div>
@@ -63,6 +64,8 @@
 @code {
     [Inject]
     public required AppStateService State { get; init; }
+    [Inject]
+    public required AuthenticationStateService AuthStateService { get; init; }
 
     private bool CollapseNavMenu = true;
 

@@ -24,4 +24,7 @@ public class TokenRepository : RepositoryBase<Token> {
 
         return token.Type == type;
     }
+
+    public void Invalidate(string token, Guid userId)
+        => Col.DeleteMany(t => t.User!.Id == userId && t.Content == token);
 }

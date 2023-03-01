@@ -6,12 +6,13 @@
         <h5 class="card-title mb-3">Login</h5>
         <div class="mb-3">
             <label class="form-label">Benutzername</label>
-            <input type="text" class="form-control" @bind=Username />
+            <input type="text" class="form-control" @bind=Username @onkeypress=OnKeyPressed @bind:event="oninput" />
         </div>
         <div class="mb-3">
             <label class="form-label">Passwort</label>
             <div class="input-group">
-                <input type="@(ShowPassword ? "text" : "password")" class="form-control" @bind=Password />
+                <input type="@(ShowPassword ? "text" : "password")" class="form-control"
+                       @bind=Password @onkeypress=OnKeyPressed @bind:event="oninput" />
                 <button class="btn btn-primary" type="button" @onclick=ToggleShowPassword>
                     <i class="bi @(ShowPassword ? "bi-eye-slash-fill" : "bi-eye-fill")"></i>
                 </button>

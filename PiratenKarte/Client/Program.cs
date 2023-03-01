@@ -21,6 +21,7 @@ builder.Services.AddLocalStorageServices();
 var http = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
 
 builder.Services.AddSingleton<AppStateService>();
+builder.Services.AddSingleton<AuthenticationStateService>();
 builder.Services.AddSingleton(new AppSettings {
     Domain = await http.GetStringAsync("Settings/GetDomain")
 });

@@ -37,6 +37,8 @@ public class PermissionRepository : RepositoryBase<Permission> {
         InsertNew("users_read", "Benutzer/Ansehen");
         InsertNew("users_update", "Benutzer/Editieren");
         InsertNew("users_delete", "Benutzer/Löschen");
+
+        InsertNew("permissions_update", "Berechtigung/Editieren");
     }
 
     private void InsertNew(string name, string readableName) {

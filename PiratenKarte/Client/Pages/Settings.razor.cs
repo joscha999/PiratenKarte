@@ -9,6 +9,8 @@ public partial class Settings {
     [Inject]
     public required AppStateService StateService { get; init; }
     [Inject]
+    public required AuthenticationStateService AuthStateService { get; init; }
+    [Inject]
     public required NavigationManager NavManager { get; init; }
 
     private bool UseLocalStorage {
@@ -24,13 +26,8 @@ public partial class Settings {
 
     private void Back() => NavManager.NavigateTo("");
 
-    private void Logout() {
-        StateService.Current.AuthToken = null;
-        StateService.Current.User = null;
-        StateService.Write();
-
-        Http.DefaultRequestHeaders.Remove("authtoken");
-        Http.DefaultRequestHeaders.Remove("userid");
+    private async Task Logout() {
+        await AuthStateService.Invalidate();
         NavManager.NavigateTo("signin");
     }
 }

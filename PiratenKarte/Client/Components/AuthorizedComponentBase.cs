@@ -6,7 +6,7 @@ namespace PiratenKarte.Client.Components;
 
 public abstract class AuthorizedComponentBase : ComponentBase {
     [Inject]
-    public required AppStateService StateService { get; init; }
+    public required AuthenticationStateService AuthStateService { get; init; }
     [Inject]
     public required NavigationManager NavManager { get; init; }
 
@@ -30,12 +30,5 @@ public abstract class AuthorizedComponentBase : ComponentBase {
         return base.OnInitializedAsync();
     }
 
-    protected bool CanView() {
-        if (StateService.Current.User == null)
-            return false;
-        if (StateService.Current.Permissions.Count == 0)
-            return false;
-
-        return StateService.Current.Permissions.Any(p => Regex.IsMatch(p.Key, PermissionFilter));
-    }
+    protected bool CanView() => AuthStateService.HasPattern(PermissionFilter);
 }

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using PiratenKarte.Client.Extensions;
 using PiratenKarte.Client.Services;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.ResponseModels;
@@ -13,7 +15,7 @@ public partial class SignIn {
     [Inject]
     public required NavigationManager NavManager { get; init; }
     [Inject]
-    public required AppStateService StateService { get; init; }
+    public required AuthenticationStateService StateService { get; init; }
 
     private string Username = "";
     private string Password = "";
@@ -44,23 +46,28 @@ public partial class SignIn {
             Username = Username,
             Password = Password,
         });
-        var loginResult = await result.Content.ReadFromJsonAsync<LoginResult>();
+        var loginResult = await result.ReadResultAsync<LoginResult>();
 
         if (loginResult == null || string.IsNullOrEmpty(loginResult.Token)) {
             ErrorBag.Fail("ServerError", "Benutzername oder Passwort falsch!");
         } else {
-            StateService.Current.AuthToken = loginResult.Token;
+            await StateService.Invalidate();
+            StateService.Current.Token = loginResult.Token;
             StateService.Current.User = loginResult.User;
             StateService.Current.Permissions = loginResult.Permissions;
+            StateService.Current.TokenValidTill = loginResult.ValidTill;
             StateService.Current.KeepLoggedIn = KeepLoggedIn;
-
             StateService.Write();
-            Http.DefaultRequestHeaders.Add("authtoken", loginResult.Token);
-            Http.DefaultRequestHeaders.Add("userid", StateService.Current.User?.Id.ToString());
+
             NavManager.NavigateTo("");
         }
 
         Submitting = false;
         StateHasChanged();
+    }
+
+    private async Task OnKeyPressed(KeyboardEventArgs args) {
+        if (args.Code == "Enter" || args.Code == "NumpadEnter")
+            await Login();
     }
 }

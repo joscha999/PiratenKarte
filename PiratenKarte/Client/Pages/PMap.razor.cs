@@ -26,6 +26,8 @@ public partial class PMap {
     public required NavigationManager NavManager { get; init; }
     [Inject]
     public required AppStateService StateService { get; init; }
+    [Inject]
+    public required AuthenticationStateService AuthStateService { get; init; }
 
     [Parameter]
     public double? Latitude { get; set; }
@@ -56,7 +58,7 @@ public partial class PMap {
     };
 
     protected override async Task OnInitializedAsync() {
-        if (string.IsNullOrEmpty(StateService.Current.AuthToken)) {
+        if (AuthStateService.GetLoginState() != LoginState.LoggedIn) {
             NavManager.NavigateTo("/signin");
             return;
         }
@@ -64,9 +66,9 @@ public partial class PMap {
         if (SetObject != null)
             Mode = MapMode.Chose;
 
-        if (StateService.Current.Permissions.Any(p => p.Key == "objects_read"))
+        if (AuthStateService.HasExact("objects_read"))
             MapObjects = await Http.GetFromJsonAsync<List<MapObject>>("MapObjects/GetMap");
-        if (StateService.Current.Permissions.Any(p => p.Key == "storagedefinitions_read"))
+        if (AuthStateService.HasExact("storagedefinitions_read"))
             StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
 
         if (MapRendered)
@@ -101,35 +103,36 @@ public partial class PMap {
     }
 
     private async Task CreateMarkersAsync() {
-        if (MapObjects == null || StorageDefinitions == null)
-            throw new UnreachableException("I'm not feeling too well");
+        if (MapObjects != null) {
+            foreach (var mo in MapObjects) {
+                var container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                var marker = await container.GetMarkerAsync();
+                await marker.AddTo(Map);
 
-        foreach (var mo in MapObjects) {
-            var container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
-            var marker = await container.GetMarkerAsync();
-            await marker.AddTo(Map);
+                var id = mo.Id;
+                await marker.OnClick(e => {
+                    NavManager.NavigateTo($"/mapobjects/view/{id}");
+                    return Task.CompletedTask;
+                });
 
-            var id = mo.Id;
-            await marker.OnClick(e => {
-                NavManager.NavigateTo($"/mapobjects/view/{id}");
-                return Task.CompletedTask;
-            });
-
-            Markers.Add(container);
+                Markers.Add(container);
+            }
         }
 
-        foreach (var sd in StorageDefinitions) {
-            var container = new StorageMarkerContainer(sd, MarkerFactory, DivIconFactory);
-            var marker = await container.GetMarkerAsync();
-            await marker.AddTo(Map);
+        if (StorageDefinitions != null) {
+            foreach (var sd in StorageDefinitions) {
+                var container = new StorageMarkerContainer(sd, MarkerFactory, DivIconFactory);
+                var marker = await container.GetMarkerAsync();
+                await marker.AddTo(Map);
 
-            var id = sd.Id;
-            await marker.OnClick(e => {
-                NavManager.NavigateTo($"/storagedefinitions/view/{id}");
-                return Task.CompletedTask;
-            });
+                var id = sd.Id;
+                await marker.OnClick(e => {
+                    NavManager.NavigateTo($"/storagedefinitions/view/{id}");
+                    return Task.CompletedTask;
+                });
 
-            Markers.Add(container);
+                Markers.Add(container);
+            }
         }
     }
 

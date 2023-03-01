@@ -1,0 +1,13 @@
+﻿@if (Current == Guid.Empty) {
+    <span>No Current Guid Supplied!</span>
+} else {
+    @if (Current == StateService.Current.User?.Id) {
+        if (ChildContent != null) {
+            @ChildContent
+        } else {
+            @Self
+        }
+    } else {
+        @Other
+    }
+}

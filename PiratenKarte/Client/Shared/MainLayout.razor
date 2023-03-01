@@ -15,12 +15,12 @@
     [Inject]
     public required NavigationManager NavManager { get; init; }
     [Inject]
-    public required AppStateService AppStateService { get; init; }
+    public required AuthenticationStateService AuthStateService { get; init; }
 
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
 
-        if (string.IsNullOrEmpty(AppStateService.Current.AuthToken))
+        if (AuthStateService.GetLoginState() != LoginState.LoggedIn)
             NavManager.NavigateTo("/signin");
     }
 }

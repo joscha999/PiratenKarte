@@ -11,10 +11,12 @@ public class UserRepository : RepositoryBase<User> {
     internal override ILiteQueryable<User> Includes(ILiteQueryable<User> query) => query;
     internal override ILiteCollection<User> Includes(ILiteCollection<User> query) => query;
 
+    public User? GetWithPermissions(Guid id) => Col.Include(u => u.Permissions).FindById(id);
+
     public User? GetByUsername(string username)
         => Col.Query().Where(u => u.Username == username).SingleOrDefault();
 
-    public void AddDefaultUser() {
+    public void AddDefaultAdmin(string? password) {
         var id = Guid.Parse("4717a5e3-f722-4cd3-b08b-bcd8c4e8ca26");
         var user = Get(id);
 
@@ -24,7 +26,7 @@ public class UserRepository : RepositoryBase<User> {
         user = new User {
             Id = id,
             Username = "Admin",
-            PasswordHash = PasswordHashser.Hash("fmiTnJj3sV6Nf@L^^m6ykp2RVUCh)^lU")
+            PasswordHash = password == null ? null : PasswordHashser.Hash(password)
         };
 
         user.Permissions = DB.PermissionRepo.GetAll().ToList();

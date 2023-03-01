@@ -16,6 +16,19 @@ public class UsersController : CrudController<User, DAL.Models.User> {
 
     public UsersController(DB db, IMapper mapper) : base(db, mapper) { }
 
+    [NonAction]
+    public override Guid Create(User item) => throw new InvalidOperationException();
+    [NonAction]
+    public override void Update(User item) => throw new InvalidOperationException();
+
+    public override void Delete([FromBody] Guid id) {
+        var selfId = GetUserId();
+        if (selfId == null || selfId == id)
+            return;
+
+        base.Delete(id);
+    }
+
     [HttpPost]
     [Permission("users_create")]
     public Guid Create(UserData request) {
@@ -30,13 +43,13 @@ public class UsersController : CrudController<User, DAL.Models.User> {
 
     [HttpPost]
     [Permission("users_update")]
-    public Guid Update(UserData request) {
+    public void Update(UserData request) {
         var user = Mapper.Map<DAL.Models.User>(request.User);
 
         if (!string.IsNullOrEmpty(request.Password))
             user.PasswordHash = PasswordHashser.Hash(request.Password);
 
-        return DB.UserRepo.Insert(user);
+        DB.UserRepo.Update(user);
     }
 
     [HttpPost]
@@ -73,5 +86,16 @@ public class UsersController : CrudController<User, DAL.Models.User> {
             User = Mapper.Map<User>(user),
             Permissions = DB.UserRepo.GetUserPermissions(user.Id).Select(Mapper.Map<Shared.Permission>).ToList()
         };
+    }
+
+    [HttpGet]
+    public void InvalidateToken() {
+        var userId = GetUserId();
+        var token = GetAuthToken();
+
+        if (userId == null || token == null)
+            return;
+
+        DB.TokenRepo.Invalidate(token, userId.Value);
     }
 }
