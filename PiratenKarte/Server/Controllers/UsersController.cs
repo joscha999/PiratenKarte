@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using OneOf;
 using PiratenKarte.DAL;
 using PiratenKarte.DAL.Models;
 using PiratenKarte.DAL.Repository;
 using PiratenKarte.Server.Authorization;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.ResponseModels;
+using PiratenKarte.Shared.Unions;
 using User = PiratenKarte.Shared.User;
 
 namespace PiratenKarte.Server.Controllers;
@@ -31,6 +33,7 @@ public class UsersController : CrudController<User, DAL.Models.User> {
         return Mapper.Map<User>(DB.UserRepo.Get(userId.Value));
     }
 
+    [HttpPost]
     public override void Delete([FromBody] Guid id) {
         var selfId = GetUserId();
         if (selfId == null || selfId == id)
@@ -41,17 +44,16 @@ public class UsersController : CrudController<User, DAL.Models.User> {
 
     [HttpPost]
     [Permission("users_create")]
-    public CreateUserResult Create(UserData request) {
+    public OneOf<IncompleteRequest, UserNameTaken, UserCreated> Create(UserData request) {
         if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.User.Username))
-            return new CreateUserResult { UserCreated = false, ValidationFailure = true };
+            return new IncompleteRequest();
         if (DB.UserRepo.GetByUsername(request.User.Username) != null)
-            return new CreateUserResult { UserCreated = false, UsernameAlreadyUsed = false };
+            return new UserNameTaken();
 
         var user = Mapper.Map<DAL.Models.User>(request.User);
         user.PasswordHash = PasswordHashser.Hash(request.Password);
 
-        var id = DB.UserRepo.Insert(user);
-        return new CreateUserResult { Id = id, UserCreated = true };
+        return new UserCreated(DB.UserRepo.Insert(user));
     }
 
     [HttpPost]

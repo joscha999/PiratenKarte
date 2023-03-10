@@ -25,3 +25,6 @@
 - New user needs double password input
 - Auto enable lower tier permissions if higher tier is set (e.g. _update enables _read)
 - Local validation for username on create, update (i.e. making sure it's available)
+- Check for a possible compression for the OneOfJsonConverter (e.g. hashing assembly, type names on both ends)
+- Disable accounts if user didn't log in for some time
+- Add claims (Required now: "")

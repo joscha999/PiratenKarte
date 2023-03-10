@@ -4,7 +4,9 @@ using PiratenKarte.Client.Extensions;
 using PiratenKarte.Client.Services;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.ResponseModels;
+using PiratenKarte.Shared.Unions;
 using PiratenKarte.Shared.Validation;
+using System.Diagnostics;
 using System.Net.Http.Json;
 
 namespace PiratenKarte.Client.Pages.Users;
@@ -48,19 +50,25 @@ public partial class SignIn {
         });
         var loginResult = await result.ReadResultAsync<LoginResult>();
 
-        if (loginResult == null || string.IsNullOrEmpty(loginResult.Token)) {
-            ErrorBag.Fail("ServerError", "Benutzername oder Passwort falsch!");
-        } else {
-            await StateService.Invalidate();
-            StateService.Current.Token = loginResult.Token;
-            StateService.Current.User = loginResult.User;
-            StateService.Current.Permissions = loginResult.Permissions;
-            StateService.Current.TokenValidTill = loginResult.ValidTill;
-            StateService.Current.KeepLoggedIn = KeepLoggedIn;
-            StateService.Write();
+        loginResult.Switch(
+            _ => ErrorBag.Fail("ServerError", "Serverfehler (Leere Antwort)"),
+            status => ErrorBag.Fail("ServerError", $"Serverfehler ({status.Code})"),
+            _ => throw new UnreachableException("Sir, this is the login."),
+            async model => {
+                if (string.IsNullOrEmpty(model.Token)) {
+                    ErrorBag.Fail("ServerError", "Benutzername oder Passwort falsch!");
+                } else {
+                    await StateService.Invalidate();
+                    StateService.Current.Token = model.Token;
+                    StateService.Current.User = model.User;
+                    StateService.Current.Permissions = model.Permissions;
+                    StateService.Current.TokenValidTill = model.ValidTill;
+                    StateService.Current.KeepLoggedIn = KeepLoggedIn;
+                    StateService.Write();
 
-            NavManager.NavigateTo("");
-        }
+                    NavManager.NavigateTo("");
+                }
+            });
 
         Submitting = false;
         StateHasChanged();

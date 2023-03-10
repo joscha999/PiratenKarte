@@ -1,5 +1,6 @@
 using PiratenKarte.DAL;
 using PiratenKarte.Server;
+using PiratenKarte.Shared.Unions;
 using System.Text.Json;
 
 if (!File.Exists("settings.json")) {
@@ -13,7 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 var settings = JsonSerializer.Deserialize<Settings>(File.ReadAllText("settings.json")) ?? Settings.Default;
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+	.AddJsonOptions(options => {
+        options.JsonSerializerOptions.Converters.Add(new OneOfJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new OneOfJsonConverterFactory());
+		options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton(new DB(settings.DbFileName, settings.AdminPassword));
 builder.Services.AddAutoMapper(typeof(MapperProfile));

@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Components;
+using OneOf;
 using PiratenKarte.Client.Extensions;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.ResponseModels;
+using PiratenKarte.Shared.Unions;
 using PiratenKarte.Shared.Validation;
 using System.Net.Http.Json;
 
@@ -42,31 +44,27 @@ public partial class Create {
         }
 
         Submitting = true;
-        var result = await Http.PostAsJsonAsync("Users/Create", new UserData {
+        var httpResponse = await Http.PostAsJsonAsync("Users/Create", new UserData {
             User = User,
             Password = Password
         });
 
-        var resultModel = await result.ReadResultAsync<CreateUserResult>();
+        var result
+            = await httpResponse.ReadResultAsync<OneOf<IncompleteRequest, UserNameTaken, UserCreated>>();
 
-        if (resultModel == null) {
-            ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden.");
-        } else {
-            if (resultModel.ValidationFailure) {
-                ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden.");
-            } else if (resultModel.UsernameAlreadyUsed) {
-                ErrorBag.Fail("ServerError", "Der angegebene Benutzername ist bereits in benutzung.");
-            }
-        }
+        result.Switch(_ => ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden (Leere Antwort)."),
+            status => ErrorBag.Fail("ServerError", $"Der Benutzer konnte nicht erstellt werden ({status.Code})."),
+            _ => NavManager.NavigateTo("/signin"),
+            model => model.Switch(
+                _ => ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden (Fehlende Informationen)."),
+                _ => ErrorBag.Fail("ServerError", "Der Benutzername ist bereits in verwendung."),
+                created => NavManager.NavigateTo($"/users/view/{created.Guid}/"))
+            );
 
         Submitting = false;
-        if (ErrorBag.AnyError) {
-            StateHasChanged();
-            return;
-        }
 
-        NavManager.NavigateTo($"/users/view/{resultModel!.Id}/");
-        Reset();
+        if (!ErrorBag.AnyError)
+            Reset();
     }
 
     private void RandomizePassword() {

@@ -5,6 +5,9 @@ using PiratenKarte.Client;
 using PiratenKarte.Client.Models;
 using PiratenKarte.Client.Services;
 using Blazored.Modal;
+using PiratenKarte.Client.Extensions;
+using PiratenKarte.Shared.Unions;
+using System.Text.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -18,6 +21,11 @@ builder.Services.AddSingleton<ParameterPassService>();
 builder.Services.AddBlazoredModal();
 builder.Services.AddLocalStorageServices();
 
+var options = new JsonSerializerOptions();
+options.Converters.Add(new OneOfJsonConverter());
+options.Converters.Add(new OneOfJsonConverterFactory());
+
+HttpExtensions.JsonSerializerOptions = options;
 var http = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
 
 builder.Services.AddSingleton<AppStateService>();
