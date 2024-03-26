@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "FisSst.BlazorMaps": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:50168;http://localhost:50171"
+    }
+  }
+}

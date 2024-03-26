@@ -44,7 +44,7 @@ public class UsersController : CrudController<User, DAL.Models.User> {
 
     [HttpPost]
     [Permission("users_create")]
-    public OneOf<IncompleteRequest, UserNameTaken, UserCreated> Create(UserData request) {
+    public UserCreateResponse Create(UserData request) {
         if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.User.Username))
             return new IncompleteRequest();
         if (DB.UserRepo.GetByUsername(request.User.Username) != null)

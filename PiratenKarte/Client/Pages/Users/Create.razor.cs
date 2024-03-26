@@ -1,3 +1,4 @@
+using BlazorUtils.HttpUtils;
 using Microsoft.AspNetCore.Components;
 using OneOf;
 using PiratenKarte.Client.Extensions;
@@ -43,28 +44,29 @@ public partial class Create {
             return;
         }
 
-        Submitting = true;
-        var httpResponse = await Http.PostAsJsonAsync("Users/Create", new UserData {
+        var userData = new UserData {
             User = User,
             Password = Password
-        });
+        };
 
-        var result
-            = await httpResponse.ReadResultAsync<OneOf<IncompleteRequest, UserNameTaken, UserCreated>>();
-
-        result.Switch(_ => ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden (Leere Antwort)."),
-            status => ErrorBag.Fail("ServerError", $"Der Benutzer konnte nicht erstellt werden ({status.Code})."),
-            _ => NavManager.NavigateTo("/signin"),
-            model => model.Switch(
+        await Http.CreatePostJson<UserCreateResponse>()
+            .To("Users/Create")
+            .WithJsonRequestValue(userData)
+            .OnUnauthorized(() => NavManager.NavigateTo("/signin"))
+            .OnStatusCode(code => ErrorBag.Fail(
+                "ServerError", $"Der Benutzer konnte nicht erstellt werden ({code})."))
+            .OnModel(model => model?.Switch(
                 _ => ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden (Fehlende Informationen)."),
                 _ => ErrorBag.Fail("ServerError", "Der Benutzername ist bereits in verwendung."),
-                created => NavManager.NavigateTo($"/users/view/{created.Guid}/"))
-            );
+                created => NavManager.NavigateTo($"/users/view/{created.Guid}/")))
+            .WithBeforeExecute(() => Submitting = true)
+            .WithAfterExecute(() => {
+                Submitting = false;
 
-        Submitting = false;
-
-        if (!ErrorBag.AnyError)
-            Reset();
+                if (!ErrorBag.AnyError)
+                    Reset();
+            })
+            .ExecuteAsync();
     }
 
     private void RandomizePassword() {

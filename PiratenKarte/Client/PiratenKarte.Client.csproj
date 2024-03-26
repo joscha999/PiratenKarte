@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\BlazorUtils\BlazorUtils.csproj" />
     <ProjectReference Include="..\..\FisSst.BlazorMaps\FisSst.BlazorMaps.csproj" />
     <ProjectReference Include="..\Shared\PiratenKarte.Shared.csproj" />
   </ItemGroup>
