@@ -12,6 +12,7 @@
 - Permission Groups (grouping together permissions + inheritance)
 - Check results on HTTP requests (use extension ReadResultAsync, OneOf)
 - Make comments use logged in user
+- Disable create comment button until comment is non-empty
 - Check login if loaded from local storage
 - Coordinates need to be clamped (or modulo'd) to world space
 - Add cleanup routine for invalid tokens

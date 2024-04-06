@@ -68,7 +68,7 @@ public partial class Create {
         Object.LatLon = new LatitudeLongitude(Latitude, Longitude);
 
         if (CreateManyCount == 1) {
-            var result = await Http.PostAsJsonAsync("MapObjects/Create", new CreateNewObject {
+            var result = await Http.PostAsJsonAsync("MapObjects/CreateSingle", new CreateNewObject {
                 Object = Object,
                 StorageId = SelectedStorageId
             });

@@ -1,13 +1,13 @@
 using FisSst.BlazorMaps;
 using Microsoft.AspNetCore.Components;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
 using System.Net.Http.Json;
 using PiratenKarte.Shared;
 using PiratenKarte.Client.Map;
 using System.Globalization;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Client.Services;
+using Microsoft.JSInterop;
 
 namespace PiratenKarte.Client.Pages;
 
@@ -21,11 +21,14 @@ public partial class PMap {
     public required IDivIconFactory DivIconFactory { get; init; }
 
     [Inject]
+    public required IGeolocationService GeolocationService { get; init; }
+
+    [Inject]
     public required HttpClient Http { get; init; }
     [Inject]
     public required NavigationManager NavManager { get; init; }
     [Inject]
-    public required AppStateService StateService { get; init; }
+    public required AppStateService AppStateService { get; init; }
     [Inject]
     public required AuthenticationStateService AuthStateService { get; init; }
 
@@ -44,15 +47,28 @@ public partial class PMap {
 
     private MapMode Mode;
 
+    private CustomPositionMarkerContainer? GPSMarkerContainer;
+    private CustomPositionMarkerContainer? SelectionContainer;
+
+    private bool GPSActive;
+    private LatLng? GPSPosition;
+
+    private static PeriodicTimer? MarkerUpdateTimer;
+
+    private readonly PositionOptions _positionOptions = new() {
+        EnableHighAccuracy = true,
+        MaximumAge = 1_000,
+        Timeout = 15_000
+    };
+
     private readonly MapOptions Options = new() {
         DivId = "map",
-        Center = new(52.1512, 9.9494),
-        Zoom = 13,
+        Center = new LatLng(0, 0),
+        Zoom = 7,
         UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         SubOptions = new MapSubOptions() {
             Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
-            TileSize = 512,
-            ZoomOffset = -1,
+            TileSize = 256,
             MaxZoom = 19
         }
     };
@@ -76,25 +92,36 @@ public partial class PMap {
     }
 
     private async Task AfterMapRendered() {
+        await Map.OnZoomLevelChange(UpdateState);
+        await Map.OnMouseUp(UpdateState);
+
+        // This should be fire and forget
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        Task.Factory.StartNew(async () => {
+            MarkerUpdateTimer?.Dispose();
+            MarkerUpdateTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+
+            while (await MarkerUpdateTimer.WaitForNextTickAsync()) {
+                if (SelectionContainer != null)
+                    await SelectionContainer.SetPosition(await Map.GetCenter());
+            }
+        });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+        MapRendered = true;
+        if (MapObjects != null && StorageDefinitions != null)
+            await CreateMarkersAsync();
+
         if (Latitude != null && Longitude != null) {
             await Map.SetView(new LatLng(Latitude.Value, Longitude.Value));
             await Map.SetZoom(13);
 
             await UpdateState(null);
         } else {
-            await Map.SetView(new LatLng(StateService.Current.MapPosition.Latitude,
-                StateService.Current.MapPosition.Longitude));
-            await Map.SetZoom(StateService.Current.MapZoom);
+            await Map.SetView(new LatLng(AppStateService.Current.MapPosition.Latitude,
+                AppStateService.Current.MapPosition.Longitude));
+            await Map.SetZoom(AppStateService.Current.MapZoom);
         }
-
-        await Map.OnZoomLevelChange(UpdateState);
-        await Map.OnMouseUp(UpdateState);
-
-        MapRendered = true;
-        if (MapObjects != null && StorageDefinitions != null)
-            await CreateMarkersAsync();
-
-        await ClampMap();
     }
 
     private async Task UpdateState(Event? e) {
@@ -102,9 +129,13 @@ public partial class PMap {
         if (center == null)
             return;
 
-        StateService.Current.MapPosition = new LatitudeLongitude(center.Lat, center.Lng);
-        StateService.Current.MapZoom = await Map.GetZoom();
-        StateService.Write();
+        if (SelectionContainer != null)
+            await SelectionContainer.SetPosition(center);
+
+        AppStateService.Current.MapPosition = new LatitudeLongitude(center.Lat, center.Lng);
+        AppStateService.Current.MapZoom = await Map.GetZoom();
+        AppStateService.Write();
+        StateHasChanged();
     }
 
     private async Task<LatLng?> ClampMap() {
@@ -157,6 +188,19 @@ public partial class PMap {
         Mode = Mode == MapMode.View ? MapMode.Chose : MapMode.View;
         SetObject = null;
 
+        if (Mode == MapMode.Chose) {
+            if (SelectionContainer == null) {
+                SelectionContainer = new(await Map.GetCenter(),
+                    "selection-marker-dot", MarkerFactory, DivIconFactory);
+                await SelectionContainer.GetMarkerAsync();
+            }
+
+            await SelectionContainer.SetPosition(await Map.GetCenter());
+            await SelectionContainer.AddToMap(Map);
+        } else if (Mode == MapMode.View && SelectionContainer != null) {
+            await SelectionContainer.RemoveFromMap(Map);
+        }
+
         await ClampMap();
         StateHasChanged();
     }
@@ -179,6 +223,49 @@ public partial class PMap {
             SetObject = null;
         }
     }
+
+    private void BtnAcceptOSM() {
+        AppStateService.Current.AcceptedOSM = true;
+        AppStateService.Write();
+    }
+
+    private async Task BtnToggleGPS() {
+        GPSActive = !GPSActive;
+
+        if (GPSActive) {
+            GeolocationService.GetCurrentPosition(OnPositionChanged, OnPositionError, _positionOptions);
+        } else {
+            if (GPSMarkerContainer != null)
+                await GPSMarkerContainer.RemoveFromMap(Map);
+        }
+    }
+
+    // Note on void instead of Task return Type: Has to be this way since WatchPosition requires Action
+    private async void OnPositionChanged(GeolocationPosition position) {
+        if (GPSActive) {
+            GPSPosition = new LatLng(position.Coords.Latitude, position.Coords.Longitude);
+
+            GeolocationService.GetCurrentPosition(OnPositionChanged, OnPositionError, _positionOptions);
+
+            if (GPSMarkerContainer == null) {
+                GPSMarkerContainer = new(GPSPosition,
+                    "geo-marker-dot", MarkerFactory, DivIconFactory);
+                await GPSMarkerContainer.GetMarkerAsync();
+            }
+
+            await GPSMarkerContainer.SetPosition(GPSPosition);
+            await GPSMarkerContainer.AddToMap(Map);
+            StateHasChanged();
+        }
+    }
+
+    private void OnPositionError(GeolocationPositionError error) {
+        GPSActive = false;
+        GPSPosition = null;
+        StateHasChanged();
+    }
+
+    private async Task JumpToGPS() => await Map.SetView(GPSPosition);
 
     private enum MapMode {
         View,

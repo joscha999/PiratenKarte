@@ -19,31 +19,62 @@
         border: 1px solid black;
         color: black;
         z-index: 99999;
-        text-align: center;
-        vertical-align: middle;
         line-height: 4rem;
         font-size: 250%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 </style>
 
-<div style="width: 100%; height: 100%;">
-    <Map @ref=Map MapOptions=Options AfterRender=AfterMapRendered></Map>
+@if (AppStateService.Current.AcceptedOSM) {
+    <div style="width: 100%; height: 100%;">
+        <Map @ref=Map MapOptions=Options AfterRender=AfterMapRendered></Map>
+    </div>
+
+    <button class="btn-add"
+            style="bottom: 1rem; right: 1rem; background-color: @(Mode == MapMode.View ? "#f80" : "#c61700");"
+            @onclick=BtnModeClicked>
+        @if (Mode == MapMode.View) {
+            <i class="bi bi-plus"></i>
+        } else {
+            <i class="bi bi-x"></i>
+        }
+    </button>
 
     @if (Mode == MapMode.Chose) {
-        <div class="marker-dot" style="margin: auto; z-index: 99999; position: relative; top: 50%; background-color: #9d00ff;"></div>
+        <button class="btn-add"
+                style="bottom: 1rem; right: 6rem; background-color: #43a001;"
+                @onclick=BtnAcceptClicked>
+            <i class="bi bi-check"></i>
+        </button>
     }
-</div>
 
-<button class="btn-add"
-        style="bottom: 1rem; right: 1rem; background-color: @(Mode == MapMode.View ? "#f80" : "#c61700");"
-        @onclick=BtnModeClicked>
-    <span>@(Mode == MapMode.View ? "＋" : "✕")</span>
-</button>
-
-@if (Mode == MapMode.Chose) {
     <button class="btn-add"
-            style="bottom: 1rem; right: 6rem; background-color: #43a001;"
-            @onclick=BtnAcceptClicked>
-        <span>✓</span>
+            style="bottom: 6rem; right: 1rem; background-color: @(GPSActive ? "#c61700" : "#f80");"
+            @onclick=BtnToggleGPS>
+        <i class="bi bi-geo-alt-fill"></i>
     </button>
+
+    @if (GPSActive && GPSPosition != null) {
+        <button class="btn-add"
+                style="bottom: 11rem; right: 1rem; background-color: #f80;"
+                @onclick=JumpToGPS>
+            <i class="bi bi-bullseye"></i>
+        </button>
+    }
+} else {
+    <div class="d-flex align-items-center justify-content-center h-100 w-100">
+        <div class="w-50">
+            <h3>OpenStreetMap Verbindung</h3>
+            <p>
+                Die PiratenKarte benutzt OpenStreetMap um die Karte anzuzeigen. Dafür wird eine Verbindung zu den Servern von
+                OpenStreetMap (<a href="https://www.openstreetmap.org">www.openstreetmap.org</a>) benötigt.
+                Dabei werden anfragen an die OpenStreetMap Server getätigt die deine IP und eine Hand
+                voll Browser-Header beinhalten.<br />
+                Falls du fragen hierzu hast kannst du dich gerne bei @@joscha999 melden.
+            </p>
+            <button @onclick=BtnAcceptOSM class="btn btn-primary">Verbindung zu den OpenStreetMap Servern erlauben</button>
+        </div>
+    </div>
 }

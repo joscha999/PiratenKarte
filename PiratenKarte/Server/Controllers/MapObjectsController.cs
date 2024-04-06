@@ -20,8 +20,13 @@ public class MapObjectsController : CrudController<MapObject, DAL.Models.MapObje
     public IEnumerable<MapObject> GetMap() => DB.MapObjectRepo.GetMap().Select(Mapper.Map<MapObject>);
 
     [HttpPost]
+    public override Guid Create(MapObject item) {
+		throw new NotSupportedException();
+    }
+
+    [HttpPost]
     [Permission("objects_create")]
-    public Guid Create(CreateNewObject request) {
+    public Guid CreateSingle(CreateNewObject request) {
         var obj = Mapper.Map<DAL.Models.MapObject>(request.Object);
 		obj.Storage = request.StorageId == null ? null : DB.StorageDefinitionRepo.Get(request.StorageId.Value);
 
@@ -71,7 +76,7 @@ public class MapObjectsController : CrudController<MapObject, DAL.Models.MapObje
     }
 
 	[HttpPost]
-    [Permission("objects_edit")]
+    [Permission("objects_update")]
     public void SetStorage(SetObjectStorage request) {
 		var obj = DB.MapObjectRepo.Get(request.ObjectId);
 
@@ -81,7 +86,7 @@ public class MapObjectsController : CrudController<MapObject, DAL.Models.MapObje
     }
 
 	[HttpPost]
-    [Permission("objects_edit")]
+    [Permission("objects_update")]
     public void SetStorageMany(SetObjectStorageMany request) {
 		var storage = request.StorageId == null ? null : DB.StorageDefinitionRepo.Get(request.StorageId.Value);
 
@@ -93,7 +98,7 @@ public class MapObjectsController : CrudController<MapObject, DAL.Models.MapObje
 	}
 
 	[HttpPost]
-    [Permission("objects_edit")]
+    [Permission("objects_update")]
     public void UpdatePosition(SetObjectPosition request) {
 		var obj = DB.MapObjectRepo.Get(request.ObjectId);
 

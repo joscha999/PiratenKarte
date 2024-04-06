@@ -20,6 +20,7 @@ builder.Services.AddBlazorDownloadFile();
 builder.Services.AddSingleton<ParameterPassService>();
 builder.Services.AddBlazoredModal();
 builder.Services.AddLocalStorageServices();
+builder.Services.AddGeolocationServices();
 
 var options = new JsonSerializerOptions();
 options.Converters.Add(new OneOfJsonConverter());
