@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 *.db
 */settings.json
+/PiratenKarte/Server/settings.json
