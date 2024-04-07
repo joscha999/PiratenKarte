@@ -41,10 +41,10 @@ public abstract class CrudController<TApi, TDb> : CrudController where TDb : IDb
 
     [HttpPost]
     [CrudPermission("_create")]
-    public virtual Guid Create(TApi item) => Repository.Insert(Mapper.Map<TApi, TDb>(item));
+    public virtual Guid Create([FromBody] TApi item) => Repository.Insert(Mapper.Map<TApi, TDb>(item));
     [HttpPost]
     [CrudPermission("_update")]
-    public virtual void Update(TApi item) => Repository.Update(Mapper.Map<TApi, TDb>(item));
+    public virtual void Update([FromBody] TApi item) => Repository.Update(Mapper.Map<TApi, TDb>(item));
     [HttpPost]
     [CrudPermission("_delete")]
     public virtual void Delete([FromBody] Guid id) => Repository.Delete(id);

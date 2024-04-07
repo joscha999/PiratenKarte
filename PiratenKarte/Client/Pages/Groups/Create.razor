@@ -1,1 +1,20 @@
-﻿<h1>Create</h1>
+﻿@page "/groups/create"
+@inherits AuthorizedComponentBase
+
+<div class="container pt-4">
+    <h1>Neue Gruppe</h1>
+
+    <div class="mb-3">
+        <label class="form-label">Name *</label>
+        <input type="text" class="form-control" @bind=Group.Name />
+        <FormError ErrorBag=ErrorBag Key="Group.Name" />
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" disabled=@Submitting @onclick=CreateGroup>
+            Erstellen
+        </button>
+
+        <FormError ErrorBag=ErrorBag Key="ServerError" />
+    </div>
+</div>

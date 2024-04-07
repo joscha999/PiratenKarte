@@ -1,1 +1,24 @@
-﻿<h1>List</h1>
+﻿@page "/groups/list"
+@inherits AuthorizedComponentBase
+
+<div class="container pt-4">
+    @if (Groups == null) {
+        <span>Lädt ...</span>
+    } else {
+        <Pagination ChangePage=ChangePage CurrentPage=Page TotalItems=TotalItems RightAlign=true @bind-ItemsPerPage=ItemsPerPage />
+
+        <ListView Items=Groups.Data>
+            <HeaderFragment>
+                <TableRow>
+                    <th scope="col">Name</th>
+                </TableRow>
+            </HeaderFragment>
+
+            <RowFragment>
+                <td><a href="@("/groups/view/" + context.Item.Id)">@context.Item.Name</a></td>
+            </RowFragment>
+        </ListView>
+
+        <Pagination ChangePage=ChangePage CurrentPage=Page TotalItems=TotalItems RightAlign=true @bind-ItemsPerPage=ItemsPerPage />
+    }
+</div>

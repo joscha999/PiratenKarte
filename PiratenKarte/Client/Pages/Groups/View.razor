@@ -1,1 +1,30 @@
-﻿<h1>View</h1>
+﻿@page "/groups/view/{Id:guid}"
+@inherits AuthorizedComponentBase
+
+<div class="container pt-4">
+    @if (Group == null) {
+        <span>Lädt ...</span>
+    } else {
+        <div class="row mb-3">
+            <div class="col-6">
+                <button class="btn btn-primary" @onclick=Back>Zurück</button>
+            </div>
+            @* <PermissionView PermissionFilter="groups_delete">
+                <div class="col-6" style="display: flex; justify-content: end;">
+                    <button class="btn btn-danger" disabled="@Submitting" @onclick=Delete>
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </div>
+            </PermissionView> *@
+        </div>
+
+        <div class="row">
+            <h3>Daten</h3>
+
+
+            <FormInput Title="Name" @bind-Value=Group.Name Disabled=Submitting
+                       SaveClicked=Update EditPermission="groups_update"
+                       ErrorBag=ErrorBag ErrorKey="Group.Name" ShowEditButton=true />
+        </div>
+    }
+</div>

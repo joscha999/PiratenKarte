@@ -29,4 +29,3 @@
 - Check for a possible compression for the OneOfJsonConverter (e.g. hashing assembly, type names on both ends)
 - Disable accounts if user didn't log in for some time
 - Add claims (Required now: "")
-- OneOfJsonConverter does not support custom one of classes inheriting OneOfBase

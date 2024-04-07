@@ -40,7 +40,7 @@
             </PermissionView>
 
             <PermissionView PermissionFilter="users_.*">
-                <NavButton Title="Benutzer" Icon="bi bi-people-fill" URLMatch="^users.*">
+                <NavButton Title="Benutzer" Icon="bi bi-person-fill" URLMatch="^users.*">
                     <PermissionView PermissionFilter="users_read">
                         <NavButton Href="users/list" URLMatch="^users\/list.*"
                                    Title="Alle" Icon="bi bi-person-lines-fill" />
@@ -48,6 +48,19 @@
                     <PermissionView PermissionFilter="users_create">
                         <NavButton Href="users/create" URLMatch="^users\/create.*"
                                    Title="Neu" Icon="bi bi-person-fill-add" />
+                    </PermissionView>
+                </NavButton>
+            </PermissionView>
+
+            <PermissionView PermissionFilter="groups_.*">
+                <NavButton Title="Gruppen" Icon="bi bi-people-fill" URLMatch="^users.*">
+                    <PermissionView PermissionFilter="users_read">
+                        <NavButton Href="groups/list" URLMatch="^groups\/list.*"
+                                   Title="Alle" Icon="bi bi-list" />
+                    </PermissionView>
+                    <PermissionView PermissionFilter="users_create">
+                        <NavButton Href="groups/create" URLMatch="^groups\/create.*"
+                                   Title="Neu" Icon="bi bi-plus-lg" />
                     </PermissionView>
                 </NavButton>
             </PermissionView>

@@ -71,7 +71,7 @@ public class GroupController : CrudController<GroupDTO, Group> {
 
     [HttpPost]
     [Permission("groups_add_user")]
-    public IActionResult SetUserGroup(SetUserGroupRequest request) {
+    public IActionResult SetUserGroup([FromBody] SetUserGroupRequest request) {
         var user = DB.UserRepo.Get(request.UserId);
         if (user == null)
             return BadRequest();
@@ -88,5 +88,27 @@ public class GroupController : CrudController<GroupDTO, Group> {
 
         DB.UserRepo.Update(user);
         return Ok();
+    }
+
+    [NonAction]
+    public override Guid Create([FromBody] GroupDTO item) => throw new NotImplementedException();
+
+    [HttpPost]
+    [Permission("groups_create")]
+    public IActionResult CreateEx([FromBody] GroupDTO group) {
+        if (string.IsNullOrEmpty(group.Name))
+            return BadRequest();
+        if (!TryGetUser(out var user))
+            return BadRequest();
+
+        var g = DB.GroupRepo.GetByName(group.Name);
+        if (g != null)
+            return Ok(new CreateGroupResponse(true, null));
+
+        var id = DB.GroupRepo.Insert(Mapper.Map<Group>(group));
+        user.GroupIds.Add(id);
+        DB.UserRepo.Update(user);
+
+        return Ok(new CreateGroupResponse(false, id));
     }
 }
