@@ -8,6 +8,6 @@ public static class QrCodeGenerator {
         var payload = new PayloadGenerator.Url($"https://{domain}/mapobjects/view/{id}");
         var data = qrGen.CreateQrCode(payload);
         var qrCode = new PngByteQRCode(data);
-        return qrCode.GetGraphic(pixelsPerModule, false);
+        return qrCode.GetGraphic(pixelsPerModule, true);
     }
 }

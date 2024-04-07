@@ -8,29 +8,29 @@ using PiratenKarte.Server.Authorization;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.ResponseModels;
 using PiratenKarte.Shared.Unions;
-using User = PiratenKarte.Shared.User;
+using UserDTO = PiratenKarte.Shared.UserDTO;
 
 namespace PiratenKarte.Server.Controllers;
-public class UsersController : CrudController<User, DAL.Models.User> {
+public class UsersController : CrudController<UserDTO, User> {
     public override string PermissionBaseName => "users";
 
-    protected override RepositoryBase<DAL.Models.User> Repository => DB.UserRepo;
+    protected override RepositoryBase<User> Repository => DB.UserRepo;
 
     public UsersController(DB db, IMapper mapper) : base(db, mapper) { }
 
     [NonAction]
-    public override Guid Create(User item) => throw new InvalidOperationException();
+    public override Guid Create(UserDTO item) => throw new InvalidOperationException();
     [NonAction]
-    public override void Update(User item) => throw new InvalidOperationException();
+    public override void Update(UserDTO item) => throw new InvalidOperationException();
 
     [HttpGet]
     [EnsureLoggedIn]
-    public User? GetSelf() {
+    public UserDTO? GetSelf() {
         var userId = GetUserId();
         if (userId == null)
             return null;
 
-        return Mapper.Map<User>(DB.UserRepo.Get(userId.Value));
+        return Mapper.Map<UserDTO>(DB.UserRepo.Get(userId.Value));
     }
 
     [HttpPost]
@@ -44,16 +44,16 @@ public class UsersController : CrudController<User, DAL.Models.User> {
 
     [HttpPost]
     [Permission("users_create")]
-    public UserCreateResponse Create(UserData request) {
+    public IActionResult Create(UserData request) {
         if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.User.Username))
-            return new IncompleteRequest();
+            return BadRequest();
         if (DB.UserRepo.GetByUsername(request.User.Username) != null)
-            return new UserNameTaken();
+            return Ok(new CreateUserResponse(false, true, Guid.Empty));
 
-        var user = Mapper.Map<DAL.Models.User>(request.User);
+        var user = Mapper.Map<User>(request.User);
         user.PasswordHash = PasswordHashser.Hash(request.Password);
 
-        return new UserCreated(DB.UserRepo.Insert(user));
+        return Ok(new CreateUserResponse(true, false, DB.UserRepo.Insert(user)));
     }
 
     [HttpPost]
@@ -105,8 +105,8 @@ public class UsersController : CrudController<User, DAL.Models.User> {
         return new LoginResult {
             Token = token.Content,
             ValidTill = token.ValidTill,
-            User = Mapper.Map<User>(user),
-            Permissions = DB.UserRepo.GetUserPermissions(user.Id).Select(Mapper.Map<Shared.Permission>).ToList()
+            User = Mapper.Map<UserDTO>(user),
+            Permissions = DB.UserRepo.GetUserPermissions(user.Id).Select(Mapper.Map<Shared.PermissionDTO>).ToList()
         };
     }
 

@@ -7,9 +7,9 @@ public class StorageMarkerContainer : MarkerContainer {
     private Marker? Marker;
     private Icon? Icon;
 
-    private readonly StorageDefinition Storage;
+    private readonly StorageDefinitionDTO Storage;
 
-    public StorageMarkerContainer(StorageDefinition storage, IMarkerFactory mf, IDivIconFactory dif)
+    public StorageMarkerContainer(StorageDefinitionDTO storage, IMarkerFactory mf, IDivIconFactory dif)
         : base(new LatLng(storage.Position.Latitude, storage.Position.Longitude), mf, dif) {
         Storage = storage;
     }

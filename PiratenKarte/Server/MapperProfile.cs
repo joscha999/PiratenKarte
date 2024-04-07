@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
+using PiratenKarte.DAL.Models;
+using PiratenKarte.Shared;
 
 namespace PiratenKarte.Server;
 
 public class MapperProfile : Profile {
 	public MapperProfile() {
-		CreateMap<DAL.Models.LatitudeLongitude, Shared.LatitudeLongitude>().ReverseMap();
-		CreateMap<DAL.Models.MapObject, Shared.MapObject>().ReverseMap();
-		CreateMap<DAL.Models.ObjectComment, Shared.ObjectComment>().ReverseMap();
-		CreateMap<DAL.Models.StorageDefinition, Shared.StorageDefinition>().ReverseMap();
-		CreateMap<DAL.Models.User, Shared.User>().ReverseMap();
-		CreateMap<DAL.Models.Permission, Shared.Permission>().ReverseMap();
+		CreateMap<LatitudeLongitude, LatitudeLongitudeDTO>().ReverseMap();
+		CreateMap<MapObject, MapObjectDTO>().ReverseMap();
+		CreateMap<ObjectComment, ObjectCommentDTO>().ReverseMap();
+		CreateMap<StorageDefinition, StorageDefinitionDTO>().ReverseMap();
+		CreateMap<User, UserDTO>().ReverseMap();
+		CreateMap<Permission, PermissionDTO>().ReverseMap();
+		CreateMap<Group, GroupDTO>().ReverseMap();
 	}
 }

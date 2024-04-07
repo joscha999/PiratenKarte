@@ -1,13 +1,10 @@
 using BlazorUtils.HttpUtils;
 using Microsoft.AspNetCore.Components;
 using OneOf;
-using PiratenKarte.Client.Extensions;
 using PiratenKarte.Shared;
 using PiratenKarte.Shared.RequestModels;
-using PiratenKarte.Shared.ResponseModels;
 using PiratenKarte.Shared.Unions;
 using PiratenKarte.Shared.Validation;
-using System.Net.Http.Json;
 
 namespace PiratenKarte.Client.Pages.Users;
 
@@ -17,7 +14,7 @@ public partial class Create {
 
     protected override string PermissionFilter => "users_create";
 
-    private User User = new User { Username = "" };
+    private UserDTO User = new UserDTO { Username = "" };
     private string Password = "";
     private bool ShowPassword;
 
@@ -26,7 +23,7 @@ public partial class Create {
     private readonly ErrorBag ErrorBag = new ErrorBag();
 
     private void Reset() {
-        User = new User { Username = "" };
+        User = new UserDTO { Username = "" };
         ErrorBag.Clear();
     }
 
@@ -49,16 +46,21 @@ public partial class Create {
             Password = Password
         };
 
-        await Http.CreatePostJson<UserCreateResponse>()
+        await Http.CreatePostJson<CreateUserResponse>()
             .To("Users/Create")
             .WithJsonRequestValue(userData)
             .OnUnauthorized(() => NavManager.NavigateTo("/signin"))
             .OnStatusCode(code => ErrorBag.Fail(
                 "ServerError", $"Der Benutzer konnte nicht erstellt werden ({code})."))
-            .OnModel(model => model?.Switch(
-                _ => ErrorBag.Fail("ServerError", "Der Benutzer konnte nicht erstellt werden (Fehlende Informationen)."),
-                _ => ErrorBag.Fail("ServerError", "Der Benutzername ist bereits in verwendung."),
-                created => NavManager.NavigateTo($"/users/view/{created.Guid}/")))
+            .OnModel(response => {
+                if (response == null) {
+                    ErrorBag.Fail("ServerError", "Der Benutzername konnte nicht erstellt werden (Unbekannter Fehler)");
+                } else if (response.Taken) {
+                    ErrorBag.Fail("ServerError", "Der Benutzername ist bereits in verwendung.");
+                } else if (response.Created) {
+                    NavManager.NavigateTo($"/users/view/{response.Id}/");
+                }
+            })
             .WithBeforeExecute(() => Submitting = true)
             .WithAfterExecute(() => {
                 Submitting = false;

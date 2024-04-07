@@ -18,7 +18,7 @@ public partial class View {
     [Inject]
     public required HttpClient Http { get; init; }
 
-    private StorageDefinition? Storage;
+    private StorageDefinitionDTO? Storage;
 
     private double? ObjLatitude {
         get => Storage?.Position.Latitude;
@@ -26,7 +26,7 @@ public partial class View {
             if (Storage == null)
                 return;
 
-            Storage.Position = new LatitudeLongitude(value ?? 0, Storage.Position.Longitude);
+            Storage.Position = new LatitudeLongitudeDTO(value ?? 0, Storage.Position.Longitude);
         }
     }
 
@@ -36,7 +36,7 @@ public partial class View {
             if (Storage == null)
                 return;
 
-            Storage.Position = new LatitudeLongitude(Storage.Position.Latitude, value ?? 0);
+            Storage.Position = new LatitudeLongitudeDTO(Storage.Position.Latitude, value ?? 0);
         }
     }
 
@@ -52,7 +52,7 @@ public partial class View {
 
     private async Task Reload() {
         Submitting = true;
-        Storage = await Http.GetFromJsonAsync<StorageDefinition>($"StorageDefinitions/Get?id={Id}");
+        Storage = await Http.GetFromJsonAsync<StorageDefinitionDTO>($"StorageDefinitions/Get?id={Id}");
 
         Submitting = false;
         StateHasChanged();

@@ -2,11 +2,11 @@
 
 namespace PiratenKarte.Shared;
 
-public struct LatitudeLongitude {
+public struct LatitudeLongitudeDTO {
     public double Latitude { get; set; }
     public double Longitude { get; set; }
 
-    public LatitudeLongitude(double latitude, double longitude) {
+    public LatitudeLongitudeDTO(double latitude, double longitude) {
         Latitude = latitude;
         Longitude = longitude;
     }

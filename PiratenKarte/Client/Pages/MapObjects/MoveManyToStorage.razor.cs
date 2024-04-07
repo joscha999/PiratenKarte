@@ -14,10 +14,10 @@ public partial class MoveManyToStorage {
 
     protected override string PermissionFilter => "objects_update";
 
-    private List<MapObject>? Objects;
+    private List<MapObjectDTO>? Objects;
 
     private Guid? SelectedStorageId;
-    private List<StorageDefinition>? StorageDefinitions;
+    private List<StorageDefinitionDTO>? StorageDefinitions;
 
     private bool Submitting;
 
@@ -25,7 +25,7 @@ public partial class MoveManyToStorage {
         if (!Params.TryTake("MoveManyToStorage.Objects", out Objects))
             NavManager.NavigateTo("/mapobjects/list");
 
-        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
+        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetAll");
         await base.OnInitializedAsync();
     }
 

@@ -7,9 +7,6 @@ namespace PiratenKarte.Shared.Unions;
 
 public class OneOfJsonConverterFactory : JsonConverterFactory {
     public override bool CanConvert(Type typeToConvert) {
-        if (!typeToConvert.IsGenericType)
-            return false;
-
         return typeof(IOneOf).IsAssignableFrom(typeToConvert);
     }
 

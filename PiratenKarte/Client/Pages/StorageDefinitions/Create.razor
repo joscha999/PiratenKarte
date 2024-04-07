@@ -1,29 +1,43 @@
 ﻿@page "/storagedefinitions/create"
 @inherits AuthorizedComponentBase
 
-<div class="container pt-4">
-    <h1>Neues Lager</h1>
+@if (Groups == null) {
+    <p>Gruppen werden geladen ...</p>
+} else {
+    <div class="container pt-4">
+        <h1>Neues Lager</h1>
 
-    <div class="mb-3">
-        <label for="input_name" class="form-label">Name *</label>
-        <InputText class="form-control" id="input_name" @bind-Value=Storage.Name />
-        <FormError ErrorBag=ErrorBag Key="Storage.Name" />
-    </div>
-
-    <div class="mb-3">
-        <label for="input_lat" class="form-label">Position (Breitengrad, Längengrad)</label>
-        <div class="input-group">
-            <InputNumber class="form-control" id="input_lat" @bind-Value=Latitude />
-            <span class="input-group-text">°</span>
-            <InputNumber class="form-control" id="input_lon" @bind-Value=Longitude />
-            <span class="input-group-text">°</span>
+        <div class="mb-3">
+            <label for="input_name" class="form-label">Name *</label>
+            <InputText class="form-control" id="input_name" @bind-Value=Storage.Name />
+            <FormError ErrorBag=ErrorBag Key="Storage.Name" />
         </div>
-        <FormError ErrorBag=ErrorBag Key="Storage.Position" />
-    </div>
 
-    <div class="mb-3">
-        <button class="btn btn-primary" disabled=@Submitting @onclick=SaveObject>
-            Erstellen
-        </button>
+        <div class="mb-3">
+            <label for="input_lat" class="form-label">Position (Breitengrad, Längengrad)</label>
+            <div class="input-group">
+                <InputNumber class="form-control" id="input_lat" @bind-Value=Latitude />
+                <span class="input-group-text">°</span>
+                <InputNumber class="form-control" id="input_lon" @bind-Value=Longitude />
+                <span class="input-group-text">°</span>
+            </div>
+            <FormError ErrorBag=ErrorBag Key="Storage.Position" />
+        </div>
+
+        <div class="mb-3">
+            <label for="input_group" class="form-label">Gruppe *</label>
+            <select class="form-select" id="input_group" @bind=SelectedGroupId>
+                @foreach (var group in Groups.OrderBy(g => g.Name)) {
+                    <option value="@group.Id">@group.Name</option>
+                }
+            </select>
+            <FormError ErrorBag=ErrorBag Key="Storage.Group" />
+        </div>
+
+        <div class="mb-3">
+            <button class="btn btn-primary" disabled=@Submitting @onclick=SaveObject>
+                Erstellen
+            </button>
+        </div>
     </div>
-</div>
+}

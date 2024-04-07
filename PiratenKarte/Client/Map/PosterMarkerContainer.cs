@@ -7,9 +7,9 @@ public class PosterMarkerContainer : MarkerContainer {
     private Marker? Marker;
     private Icon? Icon;
 
-    private readonly MapObject Poster;
+    private readonly MapObjectDTO Poster;
 
-    public PosterMarkerContainer(MapObject poster, IMarkerFactory mf, IDivIconFactory dif)
+    public PosterMarkerContainer(MapObjectDTO poster, IMarkerFactory mf, IDivIconFactory dif)
         : base(new LatLng(poster.LatLon.Latitude, poster.LatLon.Longitude), mf, dif) {
         Poster = poster;
     }

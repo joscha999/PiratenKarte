@@ -8,27 +8,25 @@ using PiratenKarte.Shared.RequestModels;
 namespace PiratenKarte.Server.Controllers;
 
 public class PermissionsController : PKController {
-    private readonly DB DB;
     private readonly IMapper Mapper;
 
-    public PermissionsController(DB db, IMapper mapper) {
-        DB = db;
+    public PermissionsController(DB db, IMapper mapper) : base(db) {
         Mapper = mapper;
     }
 
     [HttpGet]
     [Permission("permissions_update")]
-    public IEnumerable<Permission> GetVisibleFor(Guid id) {
+    public IEnumerable<PermissionDTO> GetVisibleFor(Guid id) {
         var userId = GetUserId();
         if (userId == null)
-            return Enumerable.Empty<Permission>();
+            return Enumerable.Empty<PermissionDTO>();
 
         var userPermissions = DB.UserRepo.GetUserPermissions(id).ToList();
         var selfPermissions = DB.UserRepo.GetUserPermissions(userId.Value).ToList();
-        var visible = new List<Permission>();
+        var visible = new List<PermissionDTO>();
 
         foreach (var p in selfPermissions) {
-            var mapped = Mapper.Map<Permission>(p);
+            var mapped = Mapper.Map<PermissionDTO>(p);
             mapped.Applied = userPermissions.Any(up => up.Key == mapped.Key);
             visible.Add(mapped);
         }
@@ -38,16 +36,16 @@ public class PermissionsController : PKController {
 
     [HttpGet]
     [EnsureLoggedIn]
-    public IEnumerable<Permission> GetSelf() {
+    public IEnumerable<PermissionDTO> GetSelf() {
         var userId = GetUserId();
         if (userId == null)
-            return Enumerable.Empty<Permission>();
+            return Enumerable.Empty<PermissionDTO>();
 
         var user = DB.UserRepo.GetWithPermissions(userId.Value);
         if (user == null)
-            return Enumerable.Empty<Permission>();
+            return Enumerable.Empty<PermissionDTO>();
 
-        return user.Permissions.Select(Mapper.Map<Permission>);
+        return user.Permissions.Select(Mapper.Map<PermissionDTO>);
     }
 
     [HttpPost]

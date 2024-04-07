@@ -30,6 +30,7 @@ public class UserRepository : RepositoryBase<User> {
         };
 
         user.Permissions = DB.PermissionRepo.GetAll().ToList();
+        user.GroupIds = DB.GroupRepo.GetAll().Select(g => g.Id).ToList();
         Insert(user);
     }
 

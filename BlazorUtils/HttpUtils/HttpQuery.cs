@@ -17,7 +17,7 @@ public class HttpQuery<T> {
     private Action<T?>? ModelAction;
 
     private IRequestValueHandler RequestValueHandler = new EmptyRequestValueHandler();
-    private IResponseValueHandler<T> ResponseValueHandler = (IResponseValueHandler<T>)new EmptyResponseValueHandler();
+    private IResponseValueHandler<T> ResponseValueHandler = new EmptyResponseValueHandler<T>();
 
     internal HttpQuery(HttpClient http) {
         Http = http;
@@ -156,9 +156,8 @@ public interface IResponseValueHandler<T> {
     Task<T?> GetResponseAsync(HttpContent content);
 }
 
-public class EmptyResponseValueHandler : IResponseValueHandler<EmptyHttpResult> {
-    public Task<EmptyHttpResult?> GetResponseAsync(HttpContent content)
-        => Task.FromResult<EmptyHttpResult?>(EmptyHttpResult.Instance);
+public class EmptyResponseValueHandler<T> : IResponseValueHandler<T> {
+    public Task<T?> GetResponseAsync(HttpContent content) => Task.FromResult<T?>(default);
 }
 
 public class JsonResponseValueHandler<T> : IResponseValueHandler<T> {

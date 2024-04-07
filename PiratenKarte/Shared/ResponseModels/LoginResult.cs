@@ -3,7 +3,7 @@
 public class LoginResult {
     public required string Token { get; set; }
     public DateTime ValidTill { get; set; }
-    public required User User { get; set; }
+    public required UserDTO User { get; set; }
 
-    public required List<Permission> Permissions { get; set; }
+    public required List<PermissionDTO> Permissions { get; set; }
 }

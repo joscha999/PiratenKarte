@@ -108,6 +108,13 @@
                     </PermissionView>
                 </div>
                 
+                <div class="row mb-3">
+                    <label class="form-label">Gruppe</label>
+                    <div class="input-group">
+                        <input disabled class="form-control" value="@(Group == null ? "Lädt ..." : Group.Name)" />
+                    </div>
+                </div>
+
                 <PermissionView PermissionFilter="objects_comments_create">
                     <div class="row mb-3">
                         <h3>Neue Notiz</h3>

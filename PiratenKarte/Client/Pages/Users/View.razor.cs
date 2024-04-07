@@ -22,13 +22,14 @@ public partial class View {
 
     protected override string PermissionFilter => "users_read";
 
-    private User? User;
+    private UserDTO? User;
 
     private string Password = "";
     private string PasswordRepeat = "";
     private bool ShowPassword;
 
-    private List<Permission>? Permissions;
+    private List<PermissionDTO>? Permissions;
+    private List<GroupDTO>? Groups;
 
     private readonly ErrorBag ErrorBag = new ErrorBag();
     private bool Submitting;
@@ -49,13 +50,23 @@ public partial class View {
         Submitting = true;
 
         if (Id == AuthStateService.Current.User?.Id) {
-            User = await Http.GetFromJsonAsync<User>($"Users/GetSelf");
+            User = await Http.GetFromJsonAsync<UserDTO>("Users/GetSelf");
         } else {
-            User = await Http.GetFromJsonAsync<User>($"Users/Get?id={Id}");
+            User = await Http.GetFromJsonAsync<UserDTO>($"Users/Get?id={Id}");
+        }
+
+        if (Id == AuthStateService.Current.User?.Id) {
+            var response = await Http.PostAsJsonAsync("Group/GetForUser", Id);
+            Groups = await response.Content.ReadFromJsonAsync<List<GroupDTO>>();
+        } else if (AuthStateService.HasExact("groups_add_user")) {
+            var response = await Http.PostAsJsonAsync("Group/GetForEdit", Id);
+            Groups = await response.Content.ReadFromJsonAsync<List<GroupDTO>>();
+        } else {
+            Groups = [];
         }
 
         if (AuthStateService.HasExact("permissions_update")) {
-            Permissions = await Http.GetFromJsonAsync<List<Permission>>($"Permissions/GetVisibleFor?id={Id}");
+            Permissions = await Http.GetFromJsonAsync<List<PermissionDTO>>($"Permissions/GetVisibleFor?id={Id}");
             Permissions?.Sort((a, b) => a.ReadableName.CompareTo(b.ReadableName));
         } else {
             Permissions = AuthStateService.Current.Permissions;
@@ -113,7 +124,13 @@ public partial class View {
         }
     }
 
-    private void Back() => NavManager.NavigateTo("/users/list");
+    private void Back() {
+        if (AuthStateService.HasExact("users_list")) {
+            NavManager.NavigateTo("/users/list");
+        } else {
+            NavManager.NavigateTo("/");
+        }
+    }
 
     private async Task Delete() {
         if (User == null) {
@@ -162,5 +179,18 @@ public partial class View {
             PermissionId = permission.Id,
             State = permission.Applied
         });
+    }
+
+    private async Task ToggleGroup(Guid groupId) {
+        if (Groups == null)
+            return;
+
+        var group = Groups.Find(g => g.Id == groupId);
+        if (group == null)
+            return;
+
+        group.Applied = !group.Applied;
+        await Http.PostAsJsonAsync("Group/SetUserGroup",
+            new SetUserGroupRequest(Id, group.Id, group.Applied));
     }
 }

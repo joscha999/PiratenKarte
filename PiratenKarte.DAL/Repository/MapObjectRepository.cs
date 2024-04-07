@@ -13,6 +13,8 @@ public class MapObjectRepository : RepositoryBase<MapObject> {
 	public IEnumerable<MapObject> GetInStorage(StorageDefinition storage)
 		=> Col.Query().Include(mo => mo.Storage).Where(mo => mo.Storage == storage).ToEnumerable();
 
+    public int CountVisible(User user) => Col.Count(mo => user.GroupIds.Contains(mo.GroupId));
+
     internal override ILiteQueryable<MapObject> Includes(ILiteQueryable<MapObject> query)
         => query.Include(mo => mo.Storage);
 

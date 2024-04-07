@@ -25,9 +25,11 @@ public partial class View {
 
     protected override string PermissionFilter => "objects_read";
 
-    private MapObject? Object;
-    private List<StorageDefinition>? StorageDefinitions;
+    private MapObjectDTO? Object;
+    private List<StorageDefinitionDTO>? StorageDefinitions;
     private byte[]? QRCode;
+
+    private GroupDTO? Group;
 
     private string NewCommentName = "";
     private string NewCommentContent = "";
@@ -40,7 +42,6 @@ public partial class View {
                 return;
 
             _selectedStorageId = value;
-            Console.WriteLine(value == null ? "NULL" : value);
         }
     }
 
@@ -50,7 +51,7 @@ public partial class View {
             if (Object == null)
                 return;
 
-            Object.LatLon = new LatitudeLongitude(value ?? 0, Object.LatLon.Longitude);
+            Object.LatLon = new LatitudeLongitudeDTO(value ?? 0, Object.LatLon.Longitude);
         }
     }
 
@@ -60,7 +61,7 @@ public partial class View {
             if (Object == null)
                 return;
 
-            Object.LatLon = new LatitudeLongitude(Object.LatLon.Latitude, value ?? 0);
+            Object.LatLon = new LatitudeLongitudeDTO(Object.LatLon.Latitude, value ?? 0);
         }
     }
 
@@ -76,9 +77,11 @@ public partial class View {
 
     private async Task Reload() {
         Submitting = true;
-        Object = await Http.GetFromJsonAsync<MapObject>($"MapObjects/Get?id={Id}");
-        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
+        Object = await Http.GetFromJsonAsync<MapObjectDTO>($"MapObjects/Get?id={Id}");
+        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetForUser");
         _selectedStorageId = Object!.Storage?.Id;
+        var response = await Http.PostAsJsonAsync("Group/GetSingle", Object.GroupId);
+        Group = await response.Content.ReadFromJsonAsync<GroupDTO>();
 
         Submitting = false;
         StateHasChanged();
@@ -89,7 +92,7 @@ public partial class View {
 
         await Http.PostAsJsonAsync("MapObjects/AddComment", new NewObjectComment {
             ObjectId = Id,
-            Comment = new ObjectComment {
+            Comment = new ObjectCommentDTO {
                 User = NewCommentName,
                 Note = NewCommentContent,
                 InsertionTime = DateTimeOffset.Now

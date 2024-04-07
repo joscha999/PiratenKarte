@@ -1,10 +1,9 @@
 ﻿using Microsoft.JSInterop;
 using PiratenKarte.Client.Models;
 using PiratenKarte.Shared;
-using PiratenKarte.Shared.ResponseModels;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
-using static System.Net.WebRequestMethods;
 
 namespace PiratenKarte.Client.Services;
 
@@ -17,6 +16,11 @@ public class AuthenticationStateService {
 
     public AuthState Current { get; private set; }
 
+    [MemberNotNullWhen(true, nameof(User))]
+    public bool IsAuthenticated => GetLoginState() == LoginState.LoggedIn;
+
+    public UserDTO? User => Current.User;
+
     public AuthenticationStateService(ILocalStorageService storage, HttpClient http) {
         Storage = storage;
         Http = http;
@@ -28,7 +32,7 @@ public class AuthenticationStateService {
             http.DefaultRequestHeaders.Add("userid", Current.User?.Id.ToString());
 
             Task.Factory.StartNew(async () => {
-                var result = await http.GetFromJsonAsync<List<Permission>>("Permissions/GetSelf");
+                var result = await http.GetFromJsonAsync<List<PermissionDTO>>("Permissions/GetSelf");
                 if (result == null)
                     return;
 

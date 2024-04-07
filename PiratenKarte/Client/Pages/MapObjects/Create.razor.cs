@@ -19,8 +19,11 @@ public partial class Create {
 
     protected override string PermissionFilter => "objects_create";
 
-    private MapObject Object = new MapObject { Name = "" };
-    private List<StorageDefinition>? StorageDefinitions;
+    private MapObjectDTO Object = new MapObjectDTO { Name = "" };
+    private List<StorageDefinitionDTO>? StorageDefinitions;
+
+    private List<GroupDTO>? Groups;
+    private Guid SelectedGroupId;
 
     private Guid? SelectedStorageId;
     private int CreateManyCount = 1;
@@ -30,9 +33,20 @@ public partial class Create {
     private readonly ErrorBag ErrorBag = new ErrorBag();
 
     protected override async Task OnInitializedAsync() {
-        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
+        StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetForUser");
 
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync() {
+        if (!AuthStateService.IsAuthenticated)
+            return;
+
+        var response = await Http.PostAsJsonAsync("Group/GetForUser", AuthStateService.User.Id);
+        Groups = await response.Content.ReadFromJsonAsync<List<GroupDTO>>();
+
+        if (Groups?.Count > 0)
+            SelectedGroupId = Groups.OrderBy(g => g.Name).First().Id;
     }
 
     private async Task BtnSubmitClicked() => await SaveObject(false);
@@ -42,7 +56,7 @@ public partial class Create {
     private void Reset() {
         Latitude = 0;
         Longitude = 0;
-        Object = new MapObject { Name = "" };
+        Object = new MapObjectDTO { Name = "" };
         ErrorBag.Clear();
     }
 
@@ -50,11 +64,13 @@ public partial class Create {
         ErrorBag.Clear();
 
         if (string.IsNullOrWhiteSpace(Object.Name))
-            ErrorBag.Fail("Object.Name", "Name muss gesetzt sein!");
+            ErrorBag.Fail("Object.Name", "Name muss angegeben werden.");
         if (Latitude < -90 || Latitude > 90 || Longitude < -180 || Longitude > 180) {
             ErrorBag.Fail("Object.Position", "Längengrad muss zwischen -90 und 90 liegen. " +
                 "Breitengrad muss zwischen -180 und 180 liegen");
         }
+        if (SelectedGroupId == Guid.Empty)
+            ErrorBag.Fail("Object.Group", "Gruppe muss angegeben werden.");
 
         if (ErrorBag.AnyError) {
             StateHasChanged();
@@ -65,7 +81,8 @@ public partial class Create {
             throw new InvalidOperationException();
 
         Submitting = true;
-        Object.LatLon = new LatitudeLongitude(Latitude, Longitude);
+        Object.LatLon = new LatitudeLongitudeDTO(Latitude, Longitude);
+        Object.GroupId = SelectedGroupId;
 
         if (CreateManyCount == 1) {
             var result = await Http.PostAsJsonAsync("MapObjects/CreateSingle", new CreateNewObject {
@@ -81,7 +98,8 @@ public partial class Create {
             await Http.PostAsJsonAsync("MapObjects/CreateMany", new CreateNewObjectBulk {
                 Template = Object,
                 StorageId = SelectedStorageId,
-                Count = CreateManyCount
+                Count = CreateManyCount,
+                GroupId = SelectedGroupId
             });
 
             Nav.NavigateTo(toMap ? "" : "/mapobjects/list");

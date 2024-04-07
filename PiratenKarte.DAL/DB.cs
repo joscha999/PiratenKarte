@@ -12,6 +12,7 @@ public class DB {
     public readonly UserRepository UserRepo;
     public readonly TokenRepository TokenRepo;
     public readonly PermissionRepository PermissionRepo;
+    public readonly GroupRepository GroupRepo;
 
 	public DB(string path, string? adminPassword) {
         BsonMapper.Global.Entity<MapObject>().DbRef(mo => mo.Storage, "StorageDefinitions");
@@ -34,7 +35,9 @@ public class DB {
         UserRepo = new UserRepository(this);
         TokenRepo = new TokenRepository(this);
         PermissionRepo = new PermissionRepository(this);
+        GroupRepo = new GroupRepository(this);
 
+        GroupRepo.AddDefaultGroups();
         PermissionRepo.AddDeaultPermissions();
         UserRepo.AddDefaultAdmin(adminPassword);
 

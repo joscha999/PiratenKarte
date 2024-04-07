@@ -40,8 +40,8 @@ public partial class PMap {
     public Guid? SetObject { get; set; }
 
     private bool MapRendered;
-    private List<MapObject>? MapObjects;
-    private List<StorageDefinition>? StorageDefinitions;
+    private List<MapObjectDTO>? MapObjects;
+    private List<StorageDefinitionDTO>? StorageDefinitions;
 
     private readonly List<MarkerContainer> Markers = new();
 
@@ -83,9 +83,9 @@ public partial class PMap {
             Mode = MapMode.Chose;
 
         if (AuthStateService.HasExact("objects_read"))
-            MapObjects = await Http.GetFromJsonAsync<List<MapObject>>("MapObjects/GetMap");
+            MapObjects = await Http.GetFromJsonAsync<List<MapObjectDTO>>("MapObjects/GetMap");
         if (AuthStateService.HasExact("storagedefinitions_read"))
-            StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinition>>("StorageDefinitions/GetAll");
+            StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetAll");
 
         if (MapRendered)
             await CreateMarkersAsync();
@@ -109,12 +109,15 @@ public partial class PMap {
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
         MapRendered = true;
-        if (MapObjects != null && StorageDefinitions != null)
+        if (MapObjects != null || StorageDefinitions != null)
             await CreateMarkersAsync();
 
         if (Latitude != null && Longitude != null) {
             await Map.SetView(new LatLng(Latitude.Value, Longitude.Value));
             await Map.SetZoom(13);
+
+            if (SetObject != null)
+                await UpdateSelectionMarker();
 
             await UpdateState(null);
         } else {
@@ -132,7 +135,7 @@ public partial class PMap {
         if (SelectionContainer != null)
             await SelectionContainer.SetPosition(center);
 
-        AppStateService.Current.MapPosition = new LatitudeLongitude(center.Lat, center.Lng);
+        AppStateService.Current.MapPosition = new LatitudeLongitudeDTO(center.Lat, center.Lng);
         AppStateService.Current.MapZoom = await Map.GetZoom();
         AppStateService.Write();
         StateHasChanged();
@@ -189,20 +192,24 @@ public partial class PMap {
         SetObject = null;
 
         if (Mode == MapMode.Chose) {
-            if (SelectionContainer == null) {
-                SelectionContainer = new(await Map.GetCenter(),
-                    "selection-marker-dot", MarkerFactory, DivIconFactory);
-                await SelectionContainer.GetMarkerAsync();
-            }
-
-            await SelectionContainer.SetPosition(await Map.GetCenter());
-            await SelectionContainer.AddToMap(Map);
+            await UpdateSelectionMarker();
         } else if (Mode == MapMode.View && SelectionContainer != null) {
             await SelectionContainer.RemoveFromMap(Map);
         }
 
         await ClampMap();
         StateHasChanged();
+    }
+
+    private async Task UpdateSelectionMarker() {
+        if (SelectionContainer == null) {
+            SelectionContainer = new(await Map.GetCenter(),
+                "selection-marker-dot", MarkerFactory, DivIconFactory);
+            await SelectionContainer.GetMarkerAsync();
+        }
+
+        await SelectionContainer.SetPosition(await Map.GetCenter());
+        await SelectionContainer.AddToMap(Map);
     }
 
     private async Task BtnAcceptClicked() {
@@ -216,7 +223,7 @@ public partial class PMap {
             //update
             await Http.PostAsJsonAsync("MapObjects/UpdatePosition", new SetObjectPosition {
                 ObjectId = SetObject.Value,
-                Position = new LatitudeLongitude(center.Lat, center.Lng)
+                Position = new LatitudeLongitudeDTO(center.Lat, center.Lng)
             });
 
             NavManager.NavigateTo($"/mapobjects/view/{SetObject.Value}");

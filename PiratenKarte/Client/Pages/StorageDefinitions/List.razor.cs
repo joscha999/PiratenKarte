@@ -22,7 +22,7 @@ public partial class List {
     private int ItemsPerPage = 10;
     private int TotalItems;
 
-    private PagedData<StorageDefinition>? Objects;
+    private PagedData<StorageDefinitionDTO>? Objects;
 
     private bool Submitting;
 
@@ -43,7 +43,7 @@ public partial class List {
 
     private async Task Reload() {
         Submitting = true;
-        Objects = await Http.GetFromJsonAsync<PagedData<StorageDefinition>>(
+        Objects = await Http.GetFromJsonAsync<PagedData<StorageDefinitionDTO>>(
             $"StorageDefinitions/GetPaged?page={Page}&itemsPerPage={ItemsPerPage}");
 
         TotalItems = Objects?.TotalCount ?? 1;

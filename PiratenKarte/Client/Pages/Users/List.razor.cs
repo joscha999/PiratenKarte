@@ -22,7 +22,7 @@ public partial class List {
     private int ItemsPerPage = 10;
     private int TotalItems;
 
-    private PagedData<User>? Users;
+    private PagedData<UserDTO>? Users;
 
     private bool Submitting;
 
@@ -41,7 +41,7 @@ public partial class List {
 
     private async Task Reload() {
         Submitting = true;
-        Users = await Http.GetFromJsonAsync<PagedData<User>>(
+        Users = await Http.GetFromJsonAsync<PagedData<UserDTO>>(
             $"Users/GetPaged?page={Page}&itemsPerPage={ItemsPerPage}");
 
         TotalItems = Users?.TotalCount ?? 1;

@@ -9,17 +9,17 @@ using PiratenKarte.Shared.RequestModels;
 namespace PiratenKarte.Server.Controllers;
 
 public abstract class CrudController : PKController {
+    protected CrudController(DB db) : base(db) { }
+
     public abstract string PermissionBaseName { get; }
 }
 
 public abstract class CrudController<TApi, TDb> : CrudController where TDb : IDbIdentifier {
-    protected readonly DB DB;
     protected readonly IMapper Mapper;
 
     protected abstract RepositoryBase<TDb> Repository { get; }
 
-    public CrudController(DB db, IMapper mapper) {
-        DB = db;
+    public CrudController(DB db, IMapper mapper) : base(db) {
         Mapper = mapper;
     }
 

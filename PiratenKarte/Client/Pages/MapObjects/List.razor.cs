@@ -34,7 +34,7 @@ public partial class List {
     private int ItemsPerPage = 10;
     private int TotalItems;
 
-    private PagedData<MapObject>? Objects;
+    private PagedData<MapObjectDTO>? Objects;
     private bool[]? CheckboxValues;
 
     private bool Submitting;
@@ -71,8 +71,8 @@ public partial class List {
 
     private async Task Reload() {
         Submitting = true;
-        Objects = await Http.GetFromJsonAsync<PagedData<MapObject>>(
-            $"MapObjects/GetPaged?page={Page}&itemsPerPage={ItemsPerPage}");
+        Objects = await Http.GetFromJsonAsync<PagedData<MapObjectDTO>>(
+            $"MapObjects/GetPagedEx?page={Page}&itemsPerPage={ItemsPerPage}");
         CheckboxValues = new bool[Objects?.TotalCount ?? 1];
 
         TotalItems = Objects?.TotalCount ?? 1;
@@ -157,7 +157,7 @@ public partial class List {
         NavManager.NavigateTo("/mapobjects/movemanytostorage");
     }
 
-    private IEnumerable<MapObject> SelectedObjects() {
+    private IEnumerable<MapObjectDTO> SelectedObjects() {
         if (Objects == null || CheckboxValues == null)
             yield break;
 
