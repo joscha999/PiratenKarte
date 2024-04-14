@@ -27,4 +27,7 @@ public class TokenRepository : RepositoryBase<Token> {
 
     public void Invalidate(string token, Guid userId)
         => Col.DeleteMany(t => t.User!.Id == userId && t.Content == token);
+
+    public void InvalidateAllForUser(Guid userId)
+        => Col.DeleteMany(t => t.User!.Id == userId);
 }

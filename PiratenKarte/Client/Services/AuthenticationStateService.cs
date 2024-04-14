@@ -54,7 +54,10 @@ public class AuthenticationStateService {
 
     public async Task Invalidate() {
         await Http.GetAsync("Users/InvalidateToken");
+        InvalidateLocal();
+    }
 
+    public void InvalidateLocal() {
         Http.DefaultRequestHeaders.Remove("authtoken");
         Http.DefaultRequestHeaders.Remove("userid");
 

@@ -57,21 +57,35 @@ public class UsersController : CrudController<UserDTO, User> {
     }
 
     [HttpPost]
-    [Permission("users_update")]
-    public bool Update(UserData request) {
+    [EnsureLoggedIn]
+    public IActionResult Update(UserData request) {
         if (string.IsNullOrEmpty(request.User.Username))
-            return false;
-        if (DB.UserRepo.GetByUsername(request.User.Username) != null)
-            return false;
+            return BadRequest();
+        if (!TryGetUser(out var requestUser))
+            return BadRequest();
 
-        var user = DB.UserRepo.Get(request.User.Id);
-        user.Username = request.User.Username;
+        var dbUser = DB.UserRepo.Get(request.User.Id);
+        if (dbUser == null)
+            return NotFound();
 
-        if (!string.IsNullOrEmpty(request.Password))
-            user.PasswordHash = PasswordHashser.Hash(request.Password);
+        if (!HasPermissionOrIsSelf(requestUser, "users_update", dbUser))
+            return Unauthorized();
 
-        DB.UserRepo.Update(user);
-        return true;
+            // Only check whether or not the username exists if we actually want to change it
+        if (dbUser.Username != request.User.Username && DB.UserRepo.GetByUsername(request.User.Username) != null)
+            return Ok(new UpdateUserResponse(false, true));
+
+        dbUser.Username = request.User.Username;
+
+        if (!string.IsNullOrEmpty(request.Password)) {
+            dbUser.PasswordHash = PasswordHashser.Hash(request.Password);
+
+            // When updating the Password invalidate all Tokens
+            DB.TokenRepo.InvalidateAllForUser(dbUser.Id);
+        }
+
+        DB.UserRepo.Update(dbUser);
+        return Ok(new UpdateUserResponse(true, false));
     }
 
     [HttpPost]

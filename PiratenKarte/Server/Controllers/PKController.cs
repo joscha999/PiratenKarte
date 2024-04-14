@@ -14,6 +14,7 @@ public abstract class PKController : ControllerBase {
         DB = db;
     }
 
+    [NonAction]
     public string? GetAuthToken() {
         if (!Request.Headers.TryGetValue("authtoken", out var authTokens))
             return null;
@@ -24,6 +25,7 @@ public abstract class PKController : ControllerBase {
         return token;
     }
 
+    [NonAction]
     public Guid? GetUserId() {
         if (!Request.Headers.TryGetValue("userid", out var userIds))
             return null;
@@ -34,6 +36,7 @@ public abstract class PKController : ControllerBase {
         return guid;
     }
 
+    [NonAction]
     public bool TryGetUser([NotNullWhen(true)] out User? user) {
         var userId = GetUserId();
         if (userId == null) {
@@ -51,5 +54,13 @@ public abstract class PKController : ControllerBase {
         return true;
     }
 
+    [NonAction]
     public bool IsUserInGroup(User user, Guid groupId) => user.GroupIds.Contains(groupId);
+
+    [NonAction]
+    public bool HasPermission(User user, string permission) => DB.UserRepo.HasPermission(user.Id, permission);
+
+    [NonAction]
+    public bool HasPermissionOrIsSelf(User user, string permission, User subject)
+        => user.Id == subject.Id || HasPermission(user, permission);
 }

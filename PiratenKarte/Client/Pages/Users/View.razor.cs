@@ -24,15 +24,14 @@ public partial class View {
 
     private UserDTO? User;
 
-    private string Password = "";
-    private string PasswordRepeat = "";
-    private bool ShowPassword;
-
     private List<PermissionDTO>? Permissions;
     private List<GroupDTO>? Groups;
 
     private readonly ErrorBag ErrorBag = new ErrorBag();
     private bool Submitting;
+
+    private string Password = "";
+    private string PasswordRepeat = "";
 
     protected override bool CanView() {
         if (Id == AuthStateService.Current.User?.Id)
@@ -76,13 +75,12 @@ public partial class View {
         StateHasChanged();
     }
 
-    private async Task PasswordKeyPressed(KeyboardEventArgs args) {
-        if (args.Code == "Enter" || args.Code == "NumpadEnter")
-            await UpdatePassword();
-    }
-
     private async Task Update() => await Update(false);
-    private async Task UpdatePassword() => await Update(true);
+    private async Task UpdatePassword((string pw, string pwRepeat) data) {
+        Password = data.pw;
+        PasswordRepeat = data.pwRepeat;
+        await Update(true);
+    }
 
     private async Task Update(bool submitPassword) {
         if (User == null) {
@@ -113,13 +111,22 @@ public partial class View {
             Password = submitPassword ? Password : null
         });
 
-        var success = bool.Parse((await result.Content.ReadAsStringAsync()).Trim('\"'));
+        var model = await result.Content.ReadFromJsonAsync<UpdateUserResponse>();
         Submitting = false;
 
-        if (success) {
-            await Reload();
-        } else {
-            ErrorBag.Fail("ServerError", "Benutzerdaten können nicht aktualisiert werden.");
+        if (model != null && model.Updated) {
+            // If we updated the password our Token got yeeted, make sure to go back to login
+            if (submitPassword) {
+                AuthStateService.InvalidateLocal();
+                NavManager.NavigateTo("/signin");
+            } else {
+                await Reload();
+            }
+        } else if (model == null) {
+            ErrorBag.Fail("ServerError", "Benutzerdaten konnten nicht aktualisiert werden.");
+            StateHasChanged();
+        } else if (model.Taken) {
+            ErrorBag.Fail("ServerError", "Der Benutzername ist bereits in verwendung.");
             StateHasChanged();
         }
     }
@@ -151,18 +158,6 @@ public partial class View {
         await Http.PostAsJsonAsync("Users/Delete", User.Id);
         Submitting = false;
         Back();
-    }
-
-    private void RandomizePassword() {
-        Password = new string(Enumerable.Range(0, 32)
-            .Select(_ => (char)Random.Shared.Next(32, 127)).ToArray());
-        PasswordRepeat = Password;
-        StateHasChanged();
-    }
-
-    private void ToggleShowPassword() {
-        ShowPassword = !ShowPassword;
-        StateHasChanged();
     }
 
     private async Task TogglePermission(string key) {

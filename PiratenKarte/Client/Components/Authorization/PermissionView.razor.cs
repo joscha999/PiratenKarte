@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using PiratenKarte.Client.Services;
-using System.Text.RegularExpressions;
 
 namespace PiratenKarte.Client.Components.Authorization;
 
@@ -16,7 +15,6 @@ public partial class PermissionView {
     public RenderFragment? ChildContent { get; init; }
     [Parameter]
     public required string PermissionFilter { get; init; }
-
     public bool CanView() {
         if (PermissionFilter == "*")
             return true;
