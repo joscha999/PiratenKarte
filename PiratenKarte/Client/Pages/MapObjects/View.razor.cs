@@ -31,7 +31,6 @@ public partial class View {
 
     private GroupDTO? Group;
 
-    private string NewCommentName = "";
     private string NewCommentContent = "";
 
     private Guid? _selectedStorageId;
@@ -77,7 +76,7 @@ public partial class View {
 
     private async Task Reload() {
         Submitting = true;
-        Object = await Http.GetFromJsonAsync<MapObjectDTO>($"MapObjects/Get?id={Id}");
+        Object = await Http.GetFromJsonAsync<MapObjectDTO>($"MapObjects/View?id={Id}");
         StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetForUser");
         _selectedStorageId = Object!.Storage?.Id;
         var response = await Http.PostAsJsonAsync("Group/GetSingle", Object.GroupId);
@@ -93,8 +92,7 @@ public partial class View {
         await Http.PostAsJsonAsync("MapObjects/AddComment", new NewObjectComment {
             ObjectId = Id,
             Comment = new ObjectCommentDTO {
-                User = NewCommentName,
-                Note = NewCommentContent,
+                Content = NewCommentContent,
                 InsertionTime = DateTimeOffset.Now
             }
         });

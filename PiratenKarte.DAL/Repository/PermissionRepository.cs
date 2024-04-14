@@ -19,7 +19,7 @@ public class PermissionRepository : RepositoryBase<Permission> {
         InsertNew("objects_update", "Objekte/Editieren");
         InsertNew("objects_delete", "Objekte/Löschen");
 
-        InsertNew("objects_comments_create", "Objekte/Kommentare/Löschen");
+        InsertNew("objects_comments_create", "Objekte/Kommentare/Erstellen");
         InsertNew("objects_comments_read", "Objekte/Kommentare/Ansehen");
         InsertNew("objects_comments_update", "Objekte/Kommentare/Editieren");
         InsertNew("objects_comments_delete", "Objekte/Kommentare/Löschen");

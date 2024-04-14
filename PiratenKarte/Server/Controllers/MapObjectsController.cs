@@ -17,6 +17,35 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
 
     [HttpGet]
     [Permission("objects_read")]
+    public IActionResult View(Guid id) {
+        if (!TryGetUser(out var user))
+            return BadRequest();
+
+        var obj = DB.MapObjectRepo.Get(id);
+        if (obj == null)
+            return NotFound();
+
+        var mappedObj = Mapper.Map<MapObjectDTO>(obj);
+
+        if (HasPermission(user, "objects_comments_read")) {
+            foreach (var comment in obj.Comments) {
+                var commentUser = DB.UserRepo.Get(comment.UserId);
+
+                mappedObj.Comments.Add(new ObjectCommentDTO {
+                    Content = comment.Content,
+                    Id = comment.Id,
+                    UserId = comment.UserId,
+                    InsertionTime = comment.InsertionTime,
+                    Username = commentUser?.Username ?? "Geist"
+                });
+            }
+        }
+
+        return Ok(mappedObj);
+    }
+
+    [HttpGet]
+    [Permission("objects_read")]
     public IActionResult GetMap() {
 		if (!TryGetUser(out var user))
 			return BadRequest();
@@ -109,23 +138,40 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
 
 	[HttpPost]
     [Permission("objects_comments_create")]
-    public void AddComment(NewObjectComment comment) {
-		var obj = DB.MapObjectRepo.Get(comment.ObjectId);
-		if (obj.Comments == null)
-			obj.Comments = new List<DAL.Models.ObjectComment>();
+    public IActionResult AddComment(NewObjectComment comment) {
+        if (!TryGetUser(out var user))
+            return BadRequest();
 
-		obj.Comments.Add(Mapper.Map<DAL.Models.ObjectComment>(comment.Comment));
+		var obj = DB.MapObjectRepo.Get(comment.ObjectId);
+        obj.Comments ??= [];
+
+        var mappedComment = Mapper.Map<DAL.Models.ObjectComment>(comment.Comment);
+        mappedComment.UserId = user.Id;
+        mappedComment.Id = Guid.NewGuid();
+        obj.Comments.Add(mappedComment);
+
 		DB.MapObjectRepo.Update(obj);
+        return Ok();
 	}
 
 	[HttpPost]
-    [Permission("objects_comments_delete")]
-    public void DeleteComment(DeleteObjectComment request) {
-		var obj = DB.MapObjectRepo.Get(request.ObjectId);
+    public IActionResult DeleteComment(DeleteObjectComment request) {
+        if (!TryGetUser(out var user))
+            return BadRequest();
+
+        var obj = DB.MapObjectRepo.Get(request.ObjectId);
         obj.Comments ??= [];
 
-		obj.Comments.RemoveAll(c => c.Id == request.CommentId);
+        var comment = obj.Comments.Find(c => c.Id == request.CommentId);
+        if (comment == null)
+            return Ok();
+
+        if (!HasPermissionOrIsSelf(user, "objects_comments_delete", comment.UserId))
+            return Unauthorized();
+
+        obj.Comments.Remove(comment);
 		DB.MapObjectRepo.Update(obj);
+        return Ok();
     }
 
 	[HttpPost]

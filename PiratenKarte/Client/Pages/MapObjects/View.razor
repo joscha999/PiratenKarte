@@ -119,21 +119,17 @@
                     <div class="row mb-3">
                         <h3>Neue Notiz</h3>
 
-                        <div class="col-4">
-                            <label for="input_comment_name" class="form-label">Name</label>
-                            <input type="text" id="input_comment_name" class="form-control"
-                               disabled="@Submitting" @bind=NewCommentName />
-                        </div>
-                        <div class="col-8">
+                        <div class="col-12">
                             <label for="input_comment_text" class="form-label">Notiz</label>
                             <textarea id="input_comment_text" class="form-control"
-                                  disabled="@Submitting" @bind=NewCommentContent></textarea>
+                                      disabled="@Submitting" @bind=NewCommentContent
+                                      @bind:event="oninput"></textarea>
                         </div>
 
                         <div style="display: flex; justify-content: right;" class="mt-1">
-                            <button class="btn btn-primary" disabled="@Submitting"
+                            <button class="btn btn-primary" disabled="@(Submitting || string.IsNullOrEmpty(NewCommentContent))"
                                 @onclick=CreateNewComment>
-                                Erstellen
+                                Hinzufügen
                             </button>
                         </div>
                     </div>
@@ -141,27 +137,37 @@
 
                 <PermissionView PermissionFilter="objects_comments_read">
                     <div class="row mb-3">
-                        <h3>Notizen</h3>
+                        <h3>Notizen <small>(Neuste oben)</small></h3>
 
                         <div class="px-2.5">
-                            @foreach (var comment in Object.Comments) {
+                            @foreach (var comment in Object.Comments.OrderByDescending(c => c.InsertionTime)) {
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <p class="card-text">@comment.Note</p>
+                                        <p class="card-text">@comment.Content</p>
                                     </div>
                                     <div class="card-footer">
                                         <p class="card-text" style="display: inline;">
-                                            @comment.User <small class="text-muted">
+                                            @comment.Username <small class="text-muted">
                                             am @comment.InsertionTime.LocalDateTime.ToShortDateString() um
                                             @comment.InsertionTime.LocalDateTime.ToShortTimeString() Uhr</small>
                                         </p>
                                         
-                                        <PermissionView PermissionFilter="objects_comments_delete">
-                                            <div style="float: right; display: inline;">
-                                                @{ var guid = comment.Id; }
-                                                <button class="btn btn-danger btn-sm" @onclick=@(_ => DeleteComment(guid))>Löschen</button>
-                                            </div>
-                                        </PermissionView>
+                                        <SelfView Current="@comment.UserId">
+                                            <Self>
+                                                <div style="float: right; display: inline;">
+                                                    @{ var guid = comment.Id; }
+                                                    <button class="btn btn-danger btn-sm" @onclick=@(_ => DeleteComment(guid))>Löschen</button>
+                                                </div>
+                                            </Self>
+                                            <Other>
+                                                <PermissionView PermissionFilter="objects_comments_delete">
+                                                    <div style="float: right; display: inline;">
+                                                        @{ var guid = comment.Id; }
+                                                        <button class="btn btn-danger btn-sm" @onclick=@(_ => DeleteComment(guid))>Löschen</button>
+                                                    </div>
+                                                </PermissionView>
+                                            </Other>
+                                        </SelfView>
                                     </div>
                                 </div>
                             }

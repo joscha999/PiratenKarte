@@ -63,4 +63,8 @@ public abstract class PKController : ControllerBase {
     [NonAction]
     public bool HasPermissionOrIsSelf(User user, string permission, User subject)
         => user.Id == subject.Id || HasPermission(user, permission);
+
+    [NonAction]
+    public bool HasPermissionOrIsSelf(User user, string permission, Guid subjectId)
+        => user.Id == subjectId || HasPermission(user, permission);
 }
