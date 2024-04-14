@@ -19,7 +19,7 @@ public partial class Create {
 
     protected override string PermissionFilter => "objects_create";
 
-    private MapObjectDTO Object = new MapObjectDTO { Name = "" };
+    private MapObjectDTO Object = new() { Name = "Plakat" };
     private List<StorageDefinitionDTO>? StorageDefinitions;
 
     private List<GroupDTO>? Groups;
@@ -30,7 +30,7 @@ public partial class Create {
 
     private bool Submitting;
 
-    private readonly ErrorBag ErrorBag = new ErrorBag();
+    private readonly ErrorBag ErrorBag = new();
 
     protected override async Task OnInitializedAsync() {
         StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetForUser");
@@ -56,7 +56,7 @@ public partial class Create {
     private void Reset() {
         Latitude = 0;
         Longitude = 0;
-        Object = new MapObjectDTO { Name = "" };
+        Object = new MapObjectDTO { Name = "Plakat" };
         ErrorBag.Clear();
     }
 

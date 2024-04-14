@@ -8,6 +8,9 @@ using System.Globalization;
 using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Client.Services;
 using Microsoft.JSInterop;
+using Blazored.Modal.Services;
+using PiratenKarte.Client.Pages.SharedSubPages;
+using Blazored.Modal;
 
 namespace PiratenKarte.Client.Pages;
 
@@ -39,13 +42,16 @@ public partial class PMap {
     [Parameter]
     public Guid? SetObject { get; set; }
 
+    [CascadingParameter]
+    public required IModalService ModalService { get; init; }
+
+    private MapMode Mode;
+
     private bool MapRendered;
     private List<MapObjectDTO>? MapObjects;
     private List<StorageDefinitionDTO>? StorageDefinitions;
 
-    private readonly List<MarkerContainer> Markers = new();
-
-    private MapMode Mode;
+    private readonly Dictionary<Guid, MarkerContainer> Markers = [];
 
     private CustomPositionMarkerContainer? GPSMarkerContainer;
     private CustomPositionMarkerContainer? SelectionContainer;
@@ -83,6 +89,10 @@ public partial class PMap {
         if (SetObject != null)
             Mode = MapMode.Chose;
 
+        await Reload();
+    }
+
+    private async Task Reload() {
         if (AuthStateService.HasExact("objects_read"))
             MapObjects = await Http.GetFromJsonAsync<List<MapObjectDTO>>("MapObjects/GetMap");
         if (AuthStateService.HasExact("storagedefinitions_read"))
@@ -157,6 +167,9 @@ public partial class PMap {
     private async Task CreateMarkersAsync() {
         if (MapObjects != null) {
             foreach (var mo in MapObjects) {
+                if (Markers.ContainsKey(mo.Id))
+                    continue;
+
                 var container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
                 var marker = await container.GetMarkerAsync();
                 await marker.AddTo(Map);
@@ -167,12 +180,15 @@ public partial class PMap {
                     return Task.CompletedTask;
                 });
 
-                Markers.Add(container);
+                Markers.Add(mo.Id, container);
             }
         }
 
         if (StorageDefinitions != null) {
             foreach (var sd in StorageDefinitions) {
+                if (Markers.ContainsKey(sd.Id))
+                    continue;
+
                 var container = new StorageMarkerContainer(sd, MarkerFactory, DivIconFactory);
                 var marker = await container.GetMarkerAsync();
                 await marker.AddTo(Map);
@@ -183,12 +199,24 @@ public partial class PMap {
                     return Task.CompletedTask;
                 });
 
-                Markers.Add(container);
+                Markers.Add(sd.Id, container);
             }
         }
     }
 
     private async Task BtnModeClicked() {
+        var currCenter = await Map.GetCenter();
+        var parameters = new ModalParameters()
+            .Add(nameof(SelectionMap.Latitude), currCenter.Lat)
+            .Add(nameof(SelectionMap.Longitude), currCenter.Lng)
+            .Add(nameof(SelectionMap.MapObjects), MapObjects);
+
+        var modalRef = ModalService.Show<SelectionMap>(parameters);
+        await modalRef.Result;
+
+        await Reload();
+        return;
+
         Mode = Mode == MapMode.View ? MapMode.Chose : MapMode.View;
         SetObject = null;
 

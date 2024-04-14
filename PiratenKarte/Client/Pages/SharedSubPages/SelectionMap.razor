@@ -1,0 +1,53 @@
+﻿@using FisSst.BlazorMaps
+@using PiratenKarte.Client.Models
+
+<style>
+    #selectionMap {
+        flex: 1;
+    }
+</style>
+
+<div class="modal w-100" style="display: block;">
+    <div class="modal-dialog modal-xl modal-dialog-centered h-50 w-100">
+        <div class="modal-content h-75 w-100 d-flex p-2 flex-column marker-size"
+             data-marker-size="@AppStateService.Current.MarkerScale.ToIntString()">
+            <Map @ref=Map MapOptions=Options AfterRender=AfterMapRendered></Map>
+            <div class="mt-2 mb-2">
+                <label class="form-label">Bezeichnung</label>
+                <input class="form-control" @bind=NewObject.Name @bind:event="oninput" />
+                <FormError ErrorBag="ErrorBag" Key="Object.Name" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Gruppe</label>
+
+                @if (Groups == null) {
+                    <input disabled value="Lädt ..." />
+                } else {
+                    <select class="form-select" @bind=SelectedGroupId>
+                        @foreach (var group in Groups.OrderBy(g => g.Name)) {
+                            <option value="@group.Id">@group.Name</option>
+                        }
+                    </select>
+                    <FormError ErrorBag="ErrorBag" Key="Object.Group" />
+                }
+            </div>
+            <div class="d-flex">
+                <button class="btn btn-warning me-1" @onclick=Close disabled="@Submitting">Abbrechen</button>
+                <div class="flex-grow-1" />
+                <button class="btn btn-primary me-1" @onclick=CreateAndView
+                        disabled="@(Submitting || string.IsNullOrEmpty(NewObject.Name))">
+                    Erstellen und Details ansehen
+                </button>
+                <button class="btn btn-success" @onclick=Create
+                        disabled="@(Submitting || string.IsNullOrEmpty(NewObject.Name))">
+                    Erstellen
+                </button>
+            </div>
+            <div oncancel="mt-2">
+                <FormError ErrorBag="ErrorBag" Key="ServerError" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop fade show"></div>
