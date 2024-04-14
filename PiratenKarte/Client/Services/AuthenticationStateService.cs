@@ -12,7 +12,7 @@ public class AuthenticationStateService {
     private readonly ILocalStorageService Storage;
     private readonly HttpClient Http;
 
-    private readonly Dictionary<string, bool> PermissionCache = new();
+    private readonly Dictionary<string, bool> PermissionCache = [];
 
     public AuthState Current { get; private set; }
 
@@ -21,24 +21,43 @@ public class AuthenticationStateService {
 
     public UserDTO? User => Current.User;
 
+    public bool TriedAuthenticating { get; private set; }
+
     public AuthenticationStateService(ILocalStorageService storage, HttpClient http) {
         Storage = storage;
         Http = http;
 
         Current = storage.GetItem<AuthState>(StorageKey) ?? new();
+    }
 
-        if (!string.IsNullOrEmpty(Current.Token)) {
-            http.DefaultRequestHeaders.Add("authtoken", Current.Token);
-            http.DefaultRequestHeaders.Add("userid", Current.User?.Id.ToString());
+    public async Task TryLoginFromStorage() {
+        if (TriedAuthenticating)
+            return;
 
-            Task.Factory.StartNew(async () => {
-                var result = await http.GetFromJsonAsync<List<PermissionDTO>>("Permissions/GetSelf");
-                if (result == null)
-                    return;
-
-                Current.Permissions = result;
-            });
+        if (string.IsNullOrEmpty(Current.Token)) {
+            TriedAuthenticating = true;
+            return;
         }
+
+        Http.DefaultRequestHeaders.Add("authtoken", Current.Token);
+        Http.DefaultRequestHeaders.Add("userid", Current.User?.Id.ToString());
+
+        var response = await Http.GetAsync("Users/GetSelf");
+        if (response.StatusCode != System.Net.HttpStatusCode.OK) {
+            InvalidateLocal();
+            TriedAuthenticating = true;
+            return;
+        }
+
+        var result = await Http.GetFromJsonAsync<List<PermissionDTO>>("Permissions/GetSelf");
+        if (result == null) {
+            InvalidateLocal();
+            TriedAuthenticating = true;
+            return;
+        }
+
+        Current.Permissions = result;
+        TriedAuthenticating = true;
     }
 
     public void Write() {

@@ -74,10 +74,11 @@ public partial class PMap {
     };
 
     protected override async Task OnInitializedAsync() {
-        if (AuthStateService.GetLoginState() != LoginState.LoggedIn) {
-            NavManager.NavigateTo("/signin");
+        while (!AuthStateService.TriedAuthenticating)
+            await Task.Delay(10);
+
+        if (AuthStateService.GetLoginState() != LoginState.LoggedIn)
             return;
-        }
 
         if (SetObject != null)
             Mode = MapMode.Chose;

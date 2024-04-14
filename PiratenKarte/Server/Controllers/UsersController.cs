@@ -25,12 +25,12 @@ public class UsersController : CrudController<UserDTO, User> {
 
     [HttpGet]
     [EnsureLoggedIn]
-    public UserDTO? GetSelf() {
+    public IActionResult GetSelf() {
         var userId = GetUserId();
         if (userId == null)
-            return null;
+            return Unauthorized();
 
-        return Mapper.Map<UserDTO>(DB.UserRepo.Get(userId.Value));
+        return Ok(Mapper.Map<UserDTO>(DB.UserRepo.Get(userId.Value)));
     }
 
     [HttpPost]
