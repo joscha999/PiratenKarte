@@ -1,7 +1,8 @@
 ﻿@page "/settings"
+@using PiratenKarte.Client.Models
 
 <div class="container mt-3">
-    <div class="row mb-3">
+    <div class="mb-3">
         <div class="col-6">
             <button class="btn btn-primary" @onclick=Back>Zurück</button>
         </div>
@@ -10,7 +11,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="mb-3">
         <h3>Lokale Einstellungen</h3>
 
         <div class="form-check">
@@ -19,5 +20,15 @@
                 Einstellungen lokal Speichern (Nutzt lokalen Speicher des Browsers, wie Cookies, nur besser!)
             </label>
         </div>
+    </div>
+
+    <div class="mb-3">
+        <h3>Icongröße auf der Karte</h3>
+
+        <select @bind=AppStateService.Current.MarkerScale class="form-select">
+            @foreach (var scale in Enum.GetValues<ScalePercent>()) {
+                <option value="@scale">@scale.ToIntString()%</option>
+            }
+        </select>
     </div>
 </div>

@@ -11,4 +11,29 @@ public class AppState {
     public int ItemsPerPage { get; set; } = 10;
 
     public bool StoreStateLocally { get; set; }
+
+    public ScalePercent MarkerScale { get; set; } = ScalePercent.Scale100;
+}
+
+public enum ScalePercent {
+    Scale25,
+    Scale50,
+    Scale75,
+    Scale100,
+    Scale125,
+    Scale150,
+    Scale175,
+    Scale200,
+    Scale225,
+    Scale250,
+    Scale275,
+    Scale300
+}
+
+public static class ScalePercentExtension {
+    public static string ToIntString(this ScalePercent scale)
+        => scale.ToString().Replace("Scale", "");
+
+    public static float ToFloat(this ScalePercent scale)
+        => int.Parse(scale.ToString().Replace("Scale", "")) / 100f;
 }

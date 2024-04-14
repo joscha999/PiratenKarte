@@ -1,30 +1,43 @@
-﻿.marker-dot {
-    height: 14px;
-    width: 14px;
-    border-radius: 7px;
+﻿.marker-size[data-marker-size="25"] { --marker-multiplier: 0.25; }
+.marker-size[data-marker-size="50"] { --marker-multiplier: 0.5; }
+.marker-size[data-marker-size="75"] { --marker-multiplier: 0.75; }
+.marker-size[data-marker-size="100"] { --marker-multiplier: 1.0; }
+.marker-size[data-marker-size="125"] { --marker-multiplier: 1.25; }
+.marker-size[data-marker-size="150"] { --marker-multiplier: 1.5; }
+.marker-size[data-marker-size="175"] { --marker-multiplier: 1.75; }
+.marker-size[data-marker-size="200"] { --marker-multiplier: 2.0; }
+.marker-size[data-marker-size="225"] { --marker-multiplier: 2.25; }
+.marker-size[data-marker-size="250"] { --marker-multiplier: 2.5; }
+.marker-size[data-marker-size="275"] { --marker-multiplier: 2.75; }
+.marker-size[data-marker-size="300"] { --marker-multiplier: 3.0; }
+
+.marker-dot {
+    height: calc(14px * var(--marker-multiplier));
+    width: calc(14px * var(--marker-multiplier));
+    border-radius: calc(14px * var(--marker-multiplier) / 2);
     border: 1px solid black;
     background-color: #f80;
 }
 
 .geo-marker-dot {
-    height: 14px;
-    width: 14px;
-    border-radius: 7px;
+    height: calc(14px * var(--marker-multiplier));
+    width: calc(14px * var(--marker-multiplier));
+    border-radius: calc(14px * var(--marker-multiplier) / 2);
     border: 1px solid black;
     background-color: blue;
 }
 
 .selection-marker-dot {
-    height: 14px;
-    width: 14px;
-    border-radius: 7px;
+    height: calc(14px * var(--marker-multiplier));
+    width: calc(14px * var(--marker-multiplier));
+    border-radius: calc(14px * var(--marker-multiplier) / 2);
     border: 1px solid black;
     background-color: mediumpurple;
 }
 
 .marker-icon {
-    height: 28px;
-    width: 28px;
+    height: calc(28px * var(--marker-multiplier));
+    width: calc(28px * var(--marker-multiplier));
     background-color: lightgray;
     border-radius: 5px;
     color: #f80;

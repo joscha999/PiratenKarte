@@ -7,20 +7,20 @@ public partial class Settings {
     [Inject]
     public required HttpClient Http { get; init; }
     [Inject]
-    public required AppStateService StateService { get; init; }
+    public required AppStateService AppStateService { get; init; }
     [Inject]
     public required AuthenticationStateService AuthStateService { get; init; }
     [Inject]
     public required NavigationManager NavManager { get; init; }
 
     private bool UseLocalStorage {
-        get => StateService.Current.StoreStateLocally;
+        get => AppStateService.Current.StoreStateLocally;
         set {
-            if (StateService.Current.StoreStateLocally == value)
+            if (AppStateService.Current.StoreStateLocally == value)
                 return;
 
-            StateService.Current.StoreStateLocally = value;
-            StateService.Write();
+            AppStateService.Current.StoreStateLocally = value;
+            AppStateService.Write();
         }
     }
 

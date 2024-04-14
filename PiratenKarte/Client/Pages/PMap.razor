@@ -1,6 +1,7 @@
 ﻿@page "/{Latitude:double?}/{Longitude:double?}/{SetObject:guid?}"
 
 @using FisSst.BlazorMaps;
+@using PiratenKarte.Client.Models
 
 <PageTitle>Karte</PageTitle>
 
@@ -28,7 +29,7 @@
 </style>
 
 @if (AppStateService.Current.AcceptedOSM) {
-    <div style="width: 100%; height: 100%;">
+    <div style="width: 100%; height: 100%;" class="marker-size" data-marker-size="@AppStateService.Current.MarkerScale.ToIntString()">
         <Map @ref=Map MapOptions=Options AfterRender=AfterMapRendered></Map>
     </div>
 
