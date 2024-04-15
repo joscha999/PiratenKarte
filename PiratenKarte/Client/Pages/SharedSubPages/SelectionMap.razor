@@ -7,9 +7,9 @@
     }
 </style>
 
-<div class="modal w-100" style="display: block;">
-    <div class="modal-dialog modal-xl modal-dialog-centered h-50 w-100">
-        <div class="modal-content h-75 w-100 d-flex p-2 flex-column marker-size"
+<div class="modal" style="display: block; z-index: 100100;">
+    <div class="modal-dialog modal-xl modal-dialog-centered h-50">
+        <div class="modal-content h-75 d-flex p-2 flex-column marker-size"
              data-marker-size="@AppStateService.Current.MarkerScale.ToIntString()">
             <Map @ref=Map MapOptions=Options AfterRender=AfterMapRendered></Map>
             <div class="mt-2 mb-2">
