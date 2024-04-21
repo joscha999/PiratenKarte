@@ -5,7 +5,7 @@
 
 <PageTitle>Karte</PageTitle>
 
-<style>
+<style type="text/css">
     #map {
         height: 100%;
         width: 100%;
@@ -25,6 +25,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+
+    @if (MarkerStyles != null) {
+        foreach (var style in MarkerStyles) {
+            @((MarkupString)style.GenerateCssString())
+        }
     }
 </style>
 

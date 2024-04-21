@@ -8,4 +8,5 @@ public class MapObject : IDbIdentifier {
     public List<ObjectComment> Comments { get; set; } = [];
     public StorageDefinition? Storage { get; set; }
     public Guid GroupId { get; set; }
+    public Guid MarkerStyleId { get; set; }
 }

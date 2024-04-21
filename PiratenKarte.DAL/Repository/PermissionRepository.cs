@@ -14,47 +14,57 @@ public class PermissionRepository : RepositoryBase<Permission> {
     public Permission? GetByName(string name) => Col.FindOne(p => p.Key == name);
 
     public void AddDeaultPermissions() {
-        InsertNew("objects_create", "Objekte/Erstellen");
-        InsertNew("objects_read", "Objekte/Ansehen");
-        InsertNew("objects_update", "Objekte/Editieren");
-        InsertNew("objects_delete", "Objekte/Löschen");
+        InsertOrUpdate("objects_create", "Objekte/Erstellen");
+        InsertOrUpdate("objects_read", "Objekte/Ansehen");
+        InsertOrUpdate("objects_update", "Objekte/Editieren");
+        InsertOrUpdate("objects_delete", "Objekte/Löschen");
 
-        InsertNew("objects_comments_create", "Objekte/Kommentare/Erstellen");
-        InsertNew("objects_comments_read", "Objekte/Kommentare/Ansehen");
-        InsertNew("objects_comments_update", "Objekte/Kommentare/Editieren");
-        InsertNew("objects_comments_delete", "Objekte/Kommentare/Löschen");
+        InsertOrUpdate("objects_comments_create", "Objekte/Kommentare/Erstellen");
+        InsertOrUpdate("objects_comments_read", "Objekte/Kommentare/Ansehen");
+        InsertOrUpdate("objects_comments_update", "Objekte/Kommentare/Editieren");
+        InsertOrUpdate("objects_comments_delete", "Objekte/Kommentare/Löschen");
 
-        InsertNew("settings_create", "Einstellungen/Erstellen");
-        InsertNew("settings_update", "Einstellungen/Editieren");
-        InsertNew("settings_delete", "Einstellungen/Löschen");
+        InsertOrUpdate("settings_create", "Einstellungen/Erstellen");
+        InsertOrUpdate("settings_update", "Einstellungen/Editieren");
+        InsertOrUpdate("settings_delete", "Einstellungen/Löschen");
 
-        InsertNew("storagedefinitions_create", "Lager/Erstellen");
-        InsertNew("storagedefinitions_read", "Lager/Ansehen");
-        InsertNew("storagedefinitions_update", "Lager/Editieren");
-        InsertNew("storagedefinitions_delete", "Lager/Löschen");
+        InsertOrUpdate("storagedefinitions_create", "Lager/Erstellen");
+        InsertOrUpdate("storagedefinitions_read", "Lager/Ansehen");
+        InsertOrUpdate("storagedefinitions_update", "Lager/Editieren");
+        InsertOrUpdate("storagedefinitions_delete", "Lager/Löschen");
 
-        InsertNew("users_create", "Benutzer/Erstellen");
-        InsertNew("users_read", "Benutzer/Ansehen");
-        InsertNew("users_update", "Benutzer/Editieren");
-        InsertNew("users_delete", "Benutzer/Löschen");
+        InsertOrUpdate("users_create", "Benutzer/Erstellen");
+        InsertOrUpdate("users_read", "Benutzer/Ansehen");
+        InsertOrUpdate("users_update", "Benutzer/Editieren");
+        InsertOrUpdate("users_delete", "Benutzer/Löschen");
 
-        InsertNew("permissions_update", "Berechtigung/Editieren");
+        InsertOrUpdate("permissions_update", "Berechtigung/Editieren");
 
-        InsertNew("groups_create", "Gruppen/Erstellen");
-        InsertNew("groups_read", "Gruppen/Ansehen");
-        InsertNew("groups_update", "Gruppen/Editieren");
-        InsertNew("groups_delete", "Gruppen/Löschen");
-        InsertNew("groups_add_user", "Gruppen/Benutzer Hinzufügen");
+        InsertOrUpdate("groups_create", "Gruppen/Erstellen");
+        InsertOrUpdate("groups_read", "Gruppen/Ansehen");
+        InsertOrUpdate("groups_update", "Gruppen/Editieren");
+        InsertOrUpdate("groups_delete", "Gruppen/Löschen");
+        InsertOrUpdate("groups_add_user", "Gruppen/Benutzer Hinzufügen");
+
+        InsertOrUpdate("groups_add_self", "Gruppen/Selbst Hinzufügen");
+
+        InsertOrUpdate("markerstyles_create", "Marker Stile/Eerstellen");
+        InsertOrUpdate("markerstyles_read", "Marker Stile/Ansehen");
+        InsertOrUpdate("markerstyles_update", "Marker Stile/Editieren");
+        InsertOrUpdate("markerstyles_delete", "Marker Stile/Löschen");
     }
 
-    private void InsertNew(string name, string readableName) {
+    private void InsertOrUpdate(string name, string readableName) {
         var p = GetByName(name);
-        if (p != null)
-            return;
 
-        Insert(new Permission {
-            Key = name,
-            ReadableName = readableName
-        });
+        if (p != null) {
+            p.ReadableName = readableName;
+            Update(p);
+        } else {
+            Insert(new Permission {
+                Key = name,
+                ReadableName = readableName
+            });
+        }
     }
 }

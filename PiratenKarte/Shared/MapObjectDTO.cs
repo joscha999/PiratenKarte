@@ -8,4 +8,5 @@ public class MapObjectDTO {
     public List<ObjectCommentDTO> Comments { get; set; } = [];
     public StorageDefinitionDTO? Storage { get; set; }
     public Guid GroupId { get; set; }
+    public Guid MarkerStyleId { get; set; }
 }

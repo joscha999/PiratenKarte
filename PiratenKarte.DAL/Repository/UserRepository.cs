@@ -4,6 +4,8 @@ using PiratenKarte.DAL.Models;
 namespace PiratenKarte.DAL.Repository;
 
 public class UserRepository : RepositoryBase<User> {
+    private readonly Guid AdminUserGuid = Guid.Parse("4717a5e3-f722-4cd3-b08b-bcd8c4e8ca26");
+
     public override string CollectionName => "Users";
 
     public UserRepository(DB db) : base(db) { }
@@ -15,24 +17,6 @@ public class UserRepository : RepositoryBase<User> {
 
     public User? GetByUsername(string username)
         => Col.Query().Where(u => u.Username == username).SingleOrDefault();
-
-    public void AddDefaultAdmin(string? password) {
-        var id = Guid.Parse("4717a5e3-f722-4cd3-b08b-bcd8c4e8ca26");
-        var user = Get(id);
-
-        if (user != null)
-            return;
-
-        user = new User {
-            Id = id,
-            Username = "Admin",
-            PasswordHash = password == null ? null : PasswordHashser.Hash(password)
-        };
-
-        user.Permissions = DB.PermissionRepo.GetAll().ToList();
-        user.GroupIds = DB.GroupRepo.GetAll().Select(g => g.Id).ToList();
-        Insert(user);
-    }
 
     public IEnumerable<Permission> GetUserPermissions(Guid userId) {
         var user = Col.Include(u => u.Permissions).FindById(userId);
@@ -49,5 +33,37 @@ public class UserRepository : RepositoryBase<User> {
             return false;
 
         return Col.FindOne(u => u.Id == userId && u.Permissions.Contains(permission)) != null;
+    }
+
+    internal void AddDefaultAdmin(string? password) {
+        var id = AdminUserGuid;
+        var user = Get(id);
+
+        if (user != null)
+            return;
+
+        user = new User {
+            Id = id,
+            Username = "Admin",
+            PasswordHash = password == null ? null : PasswordHashser.Hash(password)
+        };
+
+        user.Permissions = DB.PermissionRepo.GetAll().ToList();
+        user.GroupIds = DB.GroupRepo.GetAll().Select(g => g.Id).ToList();
+        Insert(user);
+    }
+
+    internal void UpdateAdminPermissionsAndGroups() {
+        var user = Get(AdminUserGuid);
+        if (user == null)
+            return;
+
+        user.Permissions.Clear();
+        user.Permissions.AddRange(DB.PermissionRepo.GetAll());
+
+        user.GroupIds.Clear();
+        user.GroupIds.AddRange(DB.GroupRepo.GetAll().Select(g => g.Id));
+
+        Update(user);
     }
 }

@@ -21,6 +21,16 @@ public class MapObjectRepository : RepositoryBase<MapObject> {
     internal override ILiteCollection<MapObject> Includes(ILiteCollection<MapObject> query)
         => query.Include(mo => mo.Storage);
 
+    internal void Migrate_SetMarkerStyle() {
+        foreach (var mo in Col.FindAll()) {
+            if (mo.MarkerStyleId != Guid.Empty)
+                continue;
+
+            mo.MarkerStyleId = MarkerStyleRepository.DefaultMarkerGuid;
+            Update(mo);
+        }
+    }
+
 #if DEBUG
     internal void AddTestData() {
         for (var i = Col.Count(); i < 25; i++) {

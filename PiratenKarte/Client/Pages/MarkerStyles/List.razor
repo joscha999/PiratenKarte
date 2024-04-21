@@ -1,0 +1,55 @@
+﻿@page "/markerstyles/list"
+@inherits AuthorizedComponentBase
+
+<div class="container pt-4">
+    @if (MarkerStyles == null) {
+        <span>Lädt ...</span>
+    } else {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Vorschau</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var marker in MarkerStyles) {
+                    <tr>
+                        <td>
+                            <PermissionView PermissionFilter="markerstyles_update">
+                                <Authorized>
+                                    <a href="@("/markerstyles/editor/" + marker.Id)">@marker.StyleName</a>
+                                </Authorized>
+                                <UnAuthorized>
+                                    <span>@marker.StyleName</span>
+                                </UnAuthorized>
+                            </PermissionView>
+                        </td>
+                        <td>
+                            <div class="d-flex h-100">
+                                <div class="@marker.CssClassName">
+                                    @if (!string.IsNullOrEmpty(marker.Icon)) {
+                                        <i class="@marker.Icon"></i>
+                                    }
+                                    @if (!string.IsNullOrEmpty(marker.Text)) {
+                                        <span>@marker.Text</span>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <style type="text/css">
+            :root {
+                --marker-multiplier: 1;
+            }
+
+            @foreach (var marker in MarkerStyles) {
+                @((MarkupString)marker.GenerateCssString())
+            }
+        </style>
+    }
+</div>

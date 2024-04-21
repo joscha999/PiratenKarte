@@ -64,6 +64,19 @@
                     </PermissionView>
                 </NavButton>
             </PermissionView>
+
+            <PermissionView PermissionFilter="markerstyles_.*">
+                <NavButton Title="Marker Stile" Icon="bi bi-filetype-css" URLMatch="^markerstyles.*">
+                    <PermissionView PermissionFilter="markerstyles_read">
+                        <NavButton Href="markerstyles/list" URLMatch="^markerstyles\/list.*"
+                                   Title="Alle" Icon="bi bi-list" />
+                    </PermissionView>
+                    <PermissionView PermissionFilter="markerstyles_create">
+                        <NavButton Href="markerstyles/create" URLMatch="^markerstyles\/create.*"
+                                   Title="Neu" Icon="bi bi-plus-lg" />
+                    </PermissionView>
+                </NavButton>
+            </PermissionView>
         </nav>
 
         <nav class="flex-column">

@@ -50,6 +50,7 @@ public partial class PMap {
     private bool MapRendered;
     private List<MapObjectDTO>? MapObjects;
     private List<StorageDefinitionDTO>? StorageDefinitions;
+    private List<MarkerStyleDTO>? MarkerStyles;
 
     private readonly Dictionary<Guid, MarkerContainer> Markers = [];
 
@@ -97,6 +98,17 @@ public partial class PMap {
             MapObjects = await Http.GetFromJsonAsync<List<MapObjectDTO>>("MapObjects/GetMap");
         if (AuthStateService.HasExact("storagedefinitions_read"))
             StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetAll");
+
+        var styleIds = new HashSet<Guid>();
+
+        if (MapObjects != null) {
+            foreach (var mo in MapObjects) {
+                styleIds.Add(mo.MarkerStyleId);
+            }
+        }
+
+        var response = await Http.PostAsJsonAsync("MarkerStyles/GetForDisplay", styleIds.ToList());
+        MarkerStyles = await response.Content.ReadFromJsonAsync<List<MarkerStyleDTO>>() ?? [];
 
         if (MapRendered)
             await CreateMarkersAsync();
@@ -170,7 +182,15 @@ public partial class PMap {
                 if (Markers.ContainsKey(mo.Id))
                     continue;
 
-                var container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                var style = MarkerStyles?.Find(s => s.Id == mo.MarkerStyleId);
+                MarkerContainer container;
+
+                if (mo.MarkerStyleId == Guid.Empty || style == null) {
+                    container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                } else {
+                    container = new StyledMarkerContainer(mo, style, MarkerFactory, DivIconFactory);
+                }
+
                 var marker = await container.GetMarkerAsync();
                 await marker.AddTo(Map);
 

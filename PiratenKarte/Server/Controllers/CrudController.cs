@@ -14,6 +14,7 @@ public abstract class CrudController : PKController {
     public abstract string PermissionBaseName { get; }
 }
 
+//TODO: Move all of these Actions to IActionResult
 public abstract class CrudController<TApi, TDb> : CrudController where TDb : IDbIdentifier {
     protected readonly IMapper Mapper;
 

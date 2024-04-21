@@ -13,6 +13,7 @@ public class DB {
     public readonly TokenRepository TokenRepo;
     public readonly PermissionRepository PermissionRepo;
     public readonly GroupRepository GroupRepo;
+    public readonly MarkerStyleRepository MarkerStyleRepo;
 
 	public DB(string path, string? adminPassword) {
         BsonMapper.Global.Entity<MapObject>().DbRef(mo => mo.Storage, "StorageDefinitions");
@@ -36,15 +37,21 @@ public class DB {
         TokenRepo = new TokenRepository(this);
         PermissionRepo = new PermissionRepository(this);
         GroupRepo = new GroupRepository(this);
+        MarkerStyleRepo = new MarkerStyleRepository(this);
 
         GroupRepo.AddDefaultGroups();
         PermissionRepo.AddDeaultPermissions();
         UserRepo.AddDefaultAdmin(adminPassword);
+        UserRepo.UpdateAdminPermissionsAndGroups();
+        MarkerStyleRepo.AddDefaultStyles();
 
 #if DEBUG
         MapObjectRepo.AddTestData();
         StorageDefinitionRepo.AddTestData();
 #endif
+
+        // In-Place Migrations
+        MapObjectRepo.Migrate_SetMarkerStyle();
     }
 
 	~DB() {

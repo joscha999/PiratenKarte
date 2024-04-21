@@ -109,6 +109,8 @@ public class GroupController : CrudController<GroupDTO, Group> {
         user.GroupIds.Add(id);
         DB.UserRepo.Update(user);
 
+        DB.MarkerStyleRepo.AddGroupIdToStyle(id, MarkerStyleRepository.DefaultMarkerGuid);
+
         return Ok(new CreateGroupResponse(false, id));
     }
 }
