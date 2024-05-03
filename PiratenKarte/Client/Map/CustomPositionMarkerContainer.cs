@@ -1,25 +1,27 @@
 ﻿using FisSst.BlazorMaps;
+using PiratenKarte.Shared;
 
 namespace PiratenKarte.Client.Map;
 
 public class CustomPositionMarkerContainer : MarkerContainer {
-    private Marker? Marker;
     private Icon? Icon;
 
-    private string CustomClassName;
+    private string? CustomClassName;
+    private MarkerStyleDTO? MarkerStyle;
 
-    public CustomPositionMarkerContainer(LatLng initialPosition, string customClassName,
-        IMarkerFactory mf, IDivIconFactory dif)
+    public CustomPositionMarkerContainer(LatLng initialPosition, string? customClassName,
+        MarkerStyleDTO? markerStyle, IMarkerFactory mf, IDivIconFactory dif)
         : base(new LatLng(initialPosition.Lat, initialPosition.Lng), mf, dif) {
         CustomClassName = customClassName;
+        MarkerStyle = markerStyle;
     }
 
     public override async Task<Marker> GetMarkerAsync() {
         if (Icon == null) {
             Icon = await DivIconFactory.CreateAsync(new DivIconOptions() {
-                Html = $"",
+                Html = GenerateHtml(),
                 ClassName = CustomClassName,
-                IconAnchor = new Point(7, 7)
+                IconAnchor = GenerateAnchor()
             });
         }
 
@@ -33,24 +35,27 @@ public class CustomPositionMarkerContainer : MarkerContainer {
         return Marker;
     }
 
-    public async Task SetPosition(LatLng position) {
-        if (Marker == null)
-            return;
+    private Point GenerateAnchor() {
+        if (MarkerStyle == null)
+            return new Point(7, 7);
 
-        await Marker.SetLatLng(position);
+        return new Point(MarkerStyle.DefaultWidthPx / 2, MarkerStyle.DefaultHeightPx / 2);
     }
 
-    public async Task AddToMap(FisSst.BlazorMaps.Map map) {
-        if (Marker == null)
-            return;
+    private string GenerateHtml() {
+        if (MarkerStyle == null)
+            return "";
 
-        await Marker.AddTo(map);
-    }
+        var html = $"<div class=\"{MarkerStyle.CssClassName}\">";
 
-    public async Task RemoveFromMap(FisSst.BlazorMaps.Map map) {
-        if (Marker == null)
-            return;
+        if (!string.IsNullOrEmpty(MarkerStyle.Icon)) {
+            html += Environment.NewLine + $"<i class=\"{MarkerStyle.Icon}\"></i>";
+        }
 
-        await Marker.RemoveFrom(map);
+        if (!string.IsNullOrEmpty(MarkerStyle.Text)) {
+            html += Environment.NewLine + $"<span>{MarkerStyle.Text}</span>";
+        }
+
+        return html + Environment.NewLine + "</div>";
     }
 }

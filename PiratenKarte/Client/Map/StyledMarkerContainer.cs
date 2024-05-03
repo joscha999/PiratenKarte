@@ -4,7 +4,6 @@ using PiratenKarte.Shared;
 namespace PiratenKarte.Client.Map;
 
 public class StyledMarkerContainer : MarkerContainer {
-    private Marker? Marker;
     private Icon? Icon;
 
     private readonly MapObjectDTO Poster;

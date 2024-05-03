@@ -21,9 +21,17 @@
                 <Map @ref=Map MapOptions=Options AfterRender=AfterMapRendered></Map>
             </div>
 
+            <PermissionView PermissionFilter="objects_delete">
+                <Authorized>
+                    <div class="mb-2 d-flex justify-content-end">
+                        <button class="btn btn-danger" @onclick=DeleteObject><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                </Authorized>
+            </PermissionView>
+
             <div class="mb-2">
                 <label class="form-label">Bezeichnung</label>
-                <input class="form-control" @bind=NewObject.Name @bind:event="oninput" />
+                <input class="form-control" @bind=EditObject.Name @bind:event="oninput" />
                 <FormError ErrorBag="ErrorBag" Key="Object.Name" />
             </div>
 
@@ -73,13 +81,12 @@
             <div class="d-flex">
                 <button class="btn btn-warning me-1" @onclick=Close disabled="@Submitting">Abbrechen</button>
                 <div class="flex-grow-1" />
-                <button class="btn btn-primary me-1" @onclick=CreateAndView
-                        disabled="@(Submitting || string.IsNullOrEmpty(NewObject.Name))">
-                    Erstellen und Details ansehen
+                <button class="btn btn-primary me-1" @onclick=ViewDetails disabled="@Submitting">
+                    Details ansehen
                 </button>
-                <button class="btn btn-success" @onclick=Create
-                        disabled="@(Submitting || string.IsNullOrEmpty(NewObject.Name))">
-                    Erstellen
+                <button class="btn btn-success" @onclick=SaveObject
+                        disabled="@(Submitting || string.IsNullOrEmpty(EditObject.Name))">
+                    Speichern
                 </button>
             </div>
             <div oncancel="mt-2">

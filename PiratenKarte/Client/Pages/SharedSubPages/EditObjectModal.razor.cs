@@ -1,19 +1,20 @@
 using Blazored.Modal;
+using Blazored.Modal.Services;
 using FisSst.BlazorMaps;
 using Microsoft.AspNetCore.Components;
+using PiratenKarte.Client.Components.Modals;
 using PiratenKarte.Client.Map;
 using PiratenKarte.Client.Services;
 using PiratenKarte.Shared;
-using PiratenKarte.Shared.RequestModels;
 using PiratenKarte.Shared.Validation;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 
 namespace PiratenKarte.Client.Pages.SharedSubPages;
 
-public partial class SelectionMap {
+public partial class EditObjectModal {
     [AllowNull]
-    private FisSst.BlazorMaps.Map Map;
+    public FisSst.BlazorMaps.Map Map;
 
     [Inject]
     public required IMarkerFactory MarkerFactory { get; init; }
@@ -32,22 +33,21 @@ public partial class SelectionMap {
     [CascadingParameter]
     public required BlazoredModalInstance Modal { get; init; }
 
-    [Parameter]
-    public double Latitude { get; set; }
-    [Parameter]
-    public double Longitude { get; set; }
+    [CascadingParameter]
+    public required IModalService ModalService { get; init; }
+
     [Parameter]
     public required List<MapObjectDTO> MapObjects { get; set; }
+    [Parameter]
+    public required MapObjectDTO EditObject { get; set; }
+    [Parameter]
+    public required List<MarkerStyleDTO> MarkerStylesMap { get; set; }
 
     private List<MarkerStyleDTO>? MarkerStyles;
     private MarkerStyleDTO? SelectedStyle;
 
     private readonly List<MarkerContainer> Markers = [];
     private CustomPositionMarkerContainer? SelectionContainer;
-
-    private MapObjectDTO NewObject = new MapObjectDTO {
-        Name = "Plakat"
-    };
 
     private static PeriodicTimer? MarkerUpdateTimer;
 
@@ -57,7 +57,7 @@ public partial class SelectionMap {
     private List<GroupDTO>? Groups;
     private Guid SelectedGroupId;
 
-    private static Guid? LastSelectedGroupId;
+    private bool MapRendered;
 
     private readonly MapOptions Options = new() {
         DivId = "selectionMap",
@@ -78,21 +78,28 @@ public partial class SelectionMap {
         var response = await Http.PostAsJsonAsync("Group/GetForUser", AuthStateService.User.Id);
         Groups = await response.Content.ReadFromJsonAsync<List<GroupDTO>>();
 
-        if (Groups?.Count > 0) {
-            if (LastSelectedGroupId != null && Groups.Find(g => g.Id == LastSelectedGroupId) != null) {
-                SelectedGroupId = LastSelectedGroupId.Value;
-            } else {
-                SelectedGroupId = Groups.OrderBy(g => g.Name).First().Id;
-            }
-        }
+        if (Groups?.Count > 0)
+            SelectedGroupId = Groups.OrderBy(g => g.Name).First().Id;
 
         MarkerStyles = await Http.GetFromJsonAsync<List<MarkerStyleDTO>>("MarkerStyles/GetAll") ?? [];
-        if (MarkerStyles.Count > 0)
-            SelectedStyle = MarkerStyles[0];
+
+        // Marker style isn't directly visible by current user but we do allow for it to be used if the object uses it already
+        if (!MarkerStyles.Any(m => m.Id == EditObject.MarkerStyleId)) {
+            response = await Http.PostAsJsonAsync("MarkerStyles/GetSingle", EditObject.MarkerStyleId);
+            var style = await response.Content.ReadFromJsonAsync<MarkerStyleDTO>();
+
+            if (style != null)
+                MarkerStyles.Add(style);
+        }
+
+        SelectedStyle = MarkerStyles.Find(m => m.Id == EditObject.MarkerStyleId);
+
+        if (MapRendered)
+            await UpdateSelectionMarker();
     }
 
     private async Task AfterMapRendered() {
-        await Map.SetView(new LatLng(Latitude, Longitude));
+        await Map.SetView(new LatLng(EditObject.LatLon.Latitude, EditObject.LatLon.Longitude));
 
         // This should be fire and forget
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -107,6 +114,7 @@ public partial class SelectionMap {
         });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
+        MapRendered = true;
         await CreateMarkersAsync();
         await UpdateSelectionMarker();
     }
@@ -126,7 +134,17 @@ public partial class SelectionMap {
     private async Task CreateMarkersAsync() {
         if (MapObjects != null) {
             foreach (var mo in MapObjects) {
-                var container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                if (mo == EditObject)
+                    continue;
+
+                MarkerContainer container;
+                var style = MarkerStylesMap.Find(m => m.Id == mo.MarkerStyleId);
+
+                if (mo.MarkerStyleId == Guid.Empty || style == null) {
+                    container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                } else {
+                    container = new StyledMarkerContainer(mo, style, MarkerFactory, DivIconFactory);
+                }
                 var marker = await container.GetMarkerAsync();
                 await marker.AddTo(Map);
                 Markers.Add(container);
@@ -141,44 +159,47 @@ public partial class SelectionMap {
 
     private async Task Close() => await Modal.CloseAsync();
 
-    private async Task Create() {
-        await SaveObject();
-        await Close();
-    }
+    private void ViewDetails() => NavManager.NavigateTo($"/mapobjects/view/{EditObject.Id}");
 
-    private async Task CreateAndView() {
-        var id = await SaveObject();
-        NavManager.NavigateTo($"/mapobjects/view/{id}");
-    }
-
-    private async Task<Guid?> SaveObject() {
+    private async Task SaveObject() {
         ErrorBag.Clear();
 
-        if (string.IsNullOrEmpty(NewObject.Name))
+        if (string.IsNullOrEmpty(EditObject.Name))
             ErrorBag.Fail("Object.Name", "Name muss angegeben werden.");
         if (SelectedGroupId == Guid.Empty)
             ErrorBag.Fail("Object.Group", "Gruppe muss angegeben werden.");
 
         if (ErrorBag.AnyError) {
             StateHasChanged();
-            return null;
+            return;
         }
 
         Submitting = true;
-        LastSelectedGroupId = SelectedGroupId;
 
         var mapCenter = await Map.GetCenter();
-        NewObject.LatLon = new LatitudeLongitudeDTO(mapCenter.Lat, mapCenter.Lng);
-        NewObject.GroupId = SelectedGroupId;
+        EditObject.LatLon = new LatitudeLongitudeDTO(mapCenter.Lat, mapCenter.Lng);
+        EditObject.GroupId = SelectedGroupId;
 
-        NewObject.MarkerStyleId = SelectedStyle?.Id ?? Guid.Empty;
+        EditObject.MarkerStyleId = SelectedStyle?.Id ?? Guid.Empty;
 
-        var result = await Http.PostAsJsonAsync("MapObjects/CreateSingle", new CreateNewObject {
-            Object = NewObject
-        });
-
-        var str = await result.Content.ReadAsStringAsync();
+        await Http.PostAsJsonAsync("MapObjects/Update", EditObject);
         Submitting = false;
-        return Guid.Parse(str.Trim('\"'));
+        await Close();
+    }
+
+    private async Task DeleteObject() {
+        var param = new ModalParameters()
+            .Add(nameof(ConfirmModal.Title), "Löschen Bestätigen")
+            .Add(nameof(ConfirmModal.Content), "Soll das Plakat wirklich gelöscht werden? ");
+        var confirmModal = ModalService.Show<ConfirmModal>("", param);
+        var result = await confirmModal.Result;
+
+        if (result.Cancelled)
+            return;
+
+        Submitting = true;
+        await Http.PostAsJsonAsync("MapObjects/Delete", EditObject.Id);
+        Submitting = false;
+        await Close();
     }
 }

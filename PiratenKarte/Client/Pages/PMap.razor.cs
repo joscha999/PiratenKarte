@@ -179,29 +179,31 @@ public partial class PMap {
     private async Task CreateMarkersAsync() {
         if (MapObjects != null) {
             foreach (var mo in MapObjects) {
-                if (Markers.ContainsKey(mo.Id))
+                if (Markers.TryGetValue(mo.Id, out var existingMarker)) {
+                    if (existingMarker is StyledMarkerContainer styledMarker) {
+                        await DeleteMarker(existingMarker, mo.Id);
+                        await BuildMarker(mo);
+                    } else {
+                        await existingMarker.SetPosition(new LatLng(mo.LatLon.Latitude, mo.LatLon.Longitude));
+                    }
+
                     continue;
-
-                var style = MarkerStyles?.Find(s => s.Id == mo.MarkerStyleId);
-                MarkerContainer container;
-
-                if (mo.MarkerStyleId == Guid.Empty || style == null) {
-                    container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
-                } else {
-                    container = new StyledMarkerContainer(mo, style, MarkerFactory, DivIconFactory);
                 }
 
-                var marker = await container.GetMarkerAsync();
-                await marker.AddTo(Map);
-
-                var id = mo.Id;
-                await marker.OnClick(e => {
-                    NavManager.NavigateTo($"/mapobjects/view/{id}");
-                    return Task.CompletedTask;
-                });
-
-                Markers.Add(mo.Id, container);
+                await BuildMarker(mo);
             }
+
+            var toDelete = new List<(Guid, MarkerContainer)>();
+            foreach (var (id, existingMarker) in Markers) {
+                if (existingMarker is StorageMarkerContainer)
+                    continue;
+
+                if (!MapObjects.Any(m => m.Id == id))
+                    toDelete.Add((id, existingMarker));
+            }
+
+            foreach (var del in toDelete)
+                await DeleteMarker(del.Item2, del.Item1);
         }
 
         if (StorageDefinitions != null) {
@@ -222,6 +224,50 @@ public partial class PMap {
                 Markers.Add(sd.Id, container);
             }
         }
+    }
+
+    private async Task BuildMarker(MapObjectDTO mo) {
+        var style = MarkerStyles?.Find(s => s.Id == mo.MarkerStyleId);
+        MarkerContainer container;
+
+        if (mo.MarkerStyleId == Guid.Empty || style == null) {
+            container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+        } else {
+            container = new StyledMarkerContainer(mo, style, MarkerFactory, DivIconFactory);
+        }
+
+        var marker = await container.GetMarkerAsync();
+        await marker.AddTo(Map);
+
+        var id = mo.Id;
+        await marker.OnClick(async _ => await MarkerClicked(id));
+
+        Markers.Add(mo.Id, container);
+    }
+
+    private async Task DeleteMarker(MarkerContainer marker, Guid id) {
+        await marker.RemoveFromMap(Map);
+        Markers.Remove(id);
+    }
+
+    private async Task MarkerClicked(Guid id) {
+        if (MapObjects == null)
+            return;
+
+        var obj = MapObjects.Find(mo => mo.Id == id);
+        if (obj == null)
+            return;
+
+        var parameters = new ModalParameters()
+            .Add(nameof(EditObjectModal.MapObjects), MapObjects)
+            .Add(nameof(EditObjectModal.EditObject), obj)
+            .Add(nameof(EditObjectModal.MarkerStylesMap), MarkerStyles);
+
+        var modalRef = ModalService.Show<EditObjectModal>(parameters);
+        await modalRef.Result;
+
+        await Reload();
+        return;
     }
 
     private async Task BtnModeClicked() {
@@ -253,7 +299,7 @@ public partial class PMap {
     private async Task UpdateSelectionMarker() {
         if (SelectionContainer == null) {
             SelectionContainer = new(await Map.GetCenter(),
-                "selection-marker-dot", MarkerFactory, DivIconFactory);
+                "selection-marker-dot", null, MarkerFactory, DivIconFactory);
             await SelectionContainer.GetMarkerAsync();
         }
 
@@ -305,7 +351,7 @@ public partial class PMap {
 
             if (GPSMarkerContainer == null) {
                 GPSMarkerContainer = new(GPSPosition,
-                    "geo-marker-dot", MarkerFactory, DivIconFactory);
+                    "geo-marker-dot", null, MarkerFactory, DivIconFactory);
                 await GPSMarkerContainer.GetMarkerAsync();
             }
 
