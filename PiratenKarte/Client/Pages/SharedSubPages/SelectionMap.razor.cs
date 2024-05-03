@@ -38,6 +38,8 @@ public partial class SelectionMap {
     public double Longitude { get; set; }
     [Parameter]
     public required List<MapObjectDTO> MapObjects { get; set; }
+    [Parameter]
+    public required List<MarkerStyleDTO> MarkerStylesMap { get; set; }
 
     private List<MarkerStyleDTO>? MarkerStyles;
     private MarkerStyleDTO? SelectedStyle;
@@ -58,6 +60,8 @@ public partial class SelectionMap {
     private Guid SelectedGroupId;
 
     private static Guid? LastSelectedGroupId;
+
+    private bool MapRendered;
 
     private readonly MapOptions Options = new() {
         DivId = "selectionMap",
@@ -89,6 +93,9 @@ public partial class SelectionMap {
         MarkerStyles = await Http.GetFromJsonAsync<List<MarkerStyleDTO>>("MarkerStyles/GetAll") ?? [];
         if (MarkerStyles.Count > 0)
             SelectedStyle = MarkerStyles[0];
+
+        if (MapRendered)
+            await UpdateSelectionMarker();
     }
 
     private async Task AfterMapRendered() {
@@ -107,6 +114,7 @@ public partial class SelectionMap {
         });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
+        MapRendered = true;
         await CreateMarkersAsync();
         await UpdateSelectionMarker();
     }
@@ -126,7 +134,14 @@ public partial class SelectionMap {
     private async Task CreateMarkersAsync() {
         if (MapObjects != null) {
             foreach (var mo in MapObjects) {
-                var container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                MarkerContainer container;
+                var style = MarkerStylesMap.Find(m => m.Id == mo.MarkerStyleId);
+
+                if (mo.MarkerStyleId == Guid.Empty || style == null) {
+                    container = new PosterMarkerContainer(mo, MarkerFactory, DivIconFactory);
+                } else {
+                    container = new StyledMarkerContainer(mo, style, MarkerFactory, DivIconFactory);
+                }
                 var marker = await container.GetMarkerAsync();
                 await marker.AddTo(Map);
                 Markers.Add(container);

@@ -284,7 +284,8 @@ public partial class PMap {
         var parameters = new ModalParameters()
             .Add(nameof(SelectionMap.Latitude), currCenter.Lat)
             .Add(nameof(SelectionMap.Longitude), currCenter.Lng)
-            .Add(nameof(SelectionMap.MapObjects), MapObjects);
+            .Add(nameof(SelectionMap.MapObjects), MapObjects)
+            .Add(nameof(SelectionMap.MarkerStylesMap), MarkerStyles);
 
         var modalRef = ModalService.Show<SelectionMap>(parameters);
         await modalRef.Result;
