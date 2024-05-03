@@ -62,7 +62,7 @@
                         @foreach (var style in MarkerStyles) {
                             <div class="btn btn-outline-light p-1" @onclick=@(() => SetStyle(style))>
                                 <div class="d-flex justify-content-center align-items-center"
-                                     style="width: 100px; height: 100px;">
+                                     style="min-width: 20px; min-height: 20px;">
                                     <div class="@style.CssClassName">
                                         @if (!string.IsNullOrEmpty(style.Icon)) {
                                             <i class="@style.Icon"></i>
