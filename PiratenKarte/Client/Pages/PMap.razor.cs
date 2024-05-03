@@ -132,8 +132,7 @@ public partial class PMap {
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
         MapRendered = true;
-        if (MapObjects != null || StorageDefinitions != null)
-            await CreateMarkersAsync();
+        await CreateMarkersAsync();
 
         if (Latitude != null && Longitude != null) {
             await Map.SetView(new LatLng(Latitude.Value, Longitude.Value));
@@ -180,10 +179,20 @@ public partial class PMap {
         if (MapObjects != null) {
             foreach (var mo in MapObjects) {
                 if (Markers.TryGetValue(mo.Id, out var existingMarker)) {
+                    var style = MarkerStyles?.Find(s => s.Id == mo.MarkerStyleId);
+
                     if (existingMarker is StyledMarkerContainer styledMarker) {
+                        // StyledMarker - always requires rebuild
+                        await DeleteMarker(existingMarker, mo.Id);
+                        await BuildMarker(mo);
+                    } else if (existingMarker is PosterMarkerContainer posterMarker && style != null) {
+                        // StyledMarker but old Marker was non-styled, requires rebuild
+
                         await DeleteMarker(existingMarker, mo.Id);
                         await BuildMarker(mo);
                     } else {
+                        // All else we can just make sure the Position is correct
+
                         await existingMarker.SetPosition(new LatLng(mo.LatLon.Latitude, mo.LatLon.Longitude));
                     }
 
