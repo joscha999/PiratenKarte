@@ -84,6 +84,25 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
 
     [NonAction]
     public override Guid Create(MapObjectDTO item) => throw new NotSupportedException();
+    [NonAction]
+    public override void Update(MapObjectDTO item) => throw new NotSupportedException();
+
+    [HttpPost]
+    [Permission("objects_update")]
+    public IActionResult UpdateEx([FromBody] MapObjectDTO mapObject) {
+        if (!TryGetUser(out var user))
+            return BadRequest();
+
+        var obj = Mapper.Map<DAL.Models.MapObject>(mapObject);
+
+        if (!IsUserInGroup(user, obj.GroupId))
+            return Unauthorized();
+
+        DB.MapObjectRepo.Update(obj);
+        DB.MapObjectLogRepo.Insert(obj.Id,
+            $"Object.Update by {user.Id}: Name: {obj.Name}, Position: {obj.LatLon}, Marker: {obj.MarkerStyleId}");
+        return Ok();
+    }
 
     [HttpPost]
     [Permission("objects_create")]
@@ -97,7 +116,10 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
 		if (!IsUserInGroup(user, obj.GroupId))
 			return Unauthorized();
 
-		return Ok(DB.MapObjectRepo.Insert(obj));
+        var id = DB.MapObjectRepo.Insert(obj);
+        DB.MapObjectLogRepo.Insert(id,
+            $"Object.Create by {user.Id}: Name: {obj.Name}, Position: {obj.LatLon}, Marker: {obj.MarkerStyleId}");
+        return Ok(id);
     }
 
 	[HttpPost]
@@ -113,8 +135,10 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
             var obj = Mapper.Map<DAL.Models.MapObject>(request.Template);
             obj.Name = string.Format(obj.Name, i);
 			obj.Storage = storage;
-			DB.MapObjectRepo.Insert(obj);
-		}
+			var objId = DB.MapObjectRepo.Insert(obj);
+            DB.MapObjectLogRepo.Insert(objId,
+                $"Object.Create by {user.Id}: Name: {obj.Name}, Position: {obj.LatLon}, Marker: {obj.MarkerStyleId}");
+        }
 
 		return Ok();
 	}
@@ -130,6 +154,8 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
             if (!IsUserInGroup(user, obj.GroupId))
                 continue;
 
+            DB.MapObjectLogRepo.Insert(id,
+                $"Object.Delete by {user.Id}");
             DB.MapObjectRepo.Delete(id);
         }
 
@@ -226,6 +252,12 @@ public class MapObjectsController : CrudController<MapObjectDTO, DAL.Models.MapO
 		obj.LatLon = Mapper.Map<DAL.Models.LatitudeLongitude>(request.Position);
 
 		DB.MapObjectRepo.Update(obj);
-		return Ok();
+        DB.MapObjectLogRepo.Insert(obj.Id,
+            $"Object.UpdatePosition by {user.Id}: Position: {obj.LatLon}");
+        return Ok();
 	}
+
+    [HttpGet]
+    [Permission("log_read")]
+    public IActionResult GetLog(Guid id) => Ok(DB.MapObjectLogRepo.GetForObject(id).Select(Mapper.Map<MapObjectLogEntryDTO>));
 }

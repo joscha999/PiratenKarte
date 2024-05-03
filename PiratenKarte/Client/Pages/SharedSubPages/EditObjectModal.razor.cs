@@ -182,7 +182,7 @@ public partial class EditObjectModal {
 
         EditObject.MarkerStyleId = SelectedStyle?.Id ?? Guid.Empty;
 
-        await Http.PostAsJsonAsync("MapObjects/Update", EditObject);
+        await Http.PostAsJsonAsync("MapObjects/UpdateEx", EditObject);
         Submitting = false;
         await Close();
     }

@@ -16,5 +16,6 @@ public class MapperProfile : Profile {
 		CreateMap<Permission, PermissionDTO>().ReverseMap();
 		CreateMap<Group, GroupDTO>().ReverseMap();
 		CreateMap<MarkerStyle, MarkerStyleDTO>().ReverseMap();
+		CreateMap<MapObjectLogEntry, MapObjectLogEntryDTO>().ReverseMap();
 	}
 }

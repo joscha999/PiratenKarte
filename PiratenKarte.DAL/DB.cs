@@ -14,6 +14,7 @@ public class DB {
     public readonly PermissionRepository PermissionRepo;
     public readonly GroupRepository GroupRepo;
     public readonly MarkerStyleRepository MarkerStyleRepo;
+    public readonly MapObjectLogRepository MapObjectLogRepo;
 
 	public DB(string path, string? adminPassword) {
         BsonMapper.Global.Entity<MapObject>().DbRef(mo => mo.Storage, "StorageDefinitions");
@@ -38,6 +39,7 @@ public class DB {
         PermissionRepo = new PermissionRepository(this);
         GroupRepo = new GroupRepository(this);
         MarkerStyleRepo = new MarkerStyleRepository(this);
+        MapObjectLogRepo = new MapObjectLogRepository(this);
 
         GroupRepo.AddDefaultGroups();
         PermissionRepo.AddDeaultPermissions();

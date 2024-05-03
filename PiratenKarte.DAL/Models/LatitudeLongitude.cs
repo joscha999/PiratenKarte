@@ -8,4 +8,6 @@ public struct LatitudeLongitude {
         Latitude = latitude;
         Longitude = longitude;
     }
+
+    public override readonly string ToString() => $"{Latitude}, {Longitude}";
 }

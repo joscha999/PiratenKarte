@@ -67,6 +67,8 @@ public partial class View {
     private readonly ErrorBag ErrorBag = new ErrorBag();
     private bool Submitting;
 
+    private List<MapObjectLogEntryDTO>? LogEntries;
+
     protected override async Task OnParametersSetAsync() {
         QRCode = QrCodeGenerator.Generate(Id, Settings.Domain);
 
@@ -79,8 +81,12 @@ public partial class View {
         Object = await Http.GetFromJsonAsync<MapObjectDTO>($"MapObjects/View?id={Id}");
         StorageDefinitions = await Http.GetFromJsonAsync<List<StorageDefinitionDTO>>("StorageDefinitions/GetForUser");
         _selectedStorageId = Object!.Storage?.Id;
+
         var response = await Http.PostAsJsonAsync("Group/GetSingle", Object.GroupId);
         Group = await response.Content.ReadFromJsonAsync<GroupDTO>();
+
+        if (AuthStateService.HasExact("log_read"))
+            LogEntries = await Http.GetFromJsonAsync<List<MapObjectLogEntryDTO>>($"MapObjects/GetLog?id={Id}");
 
         Submitting = false;
         StateHasChanged();
@@ -143,7 +149,7 @@ public partial class View {
 
         Submitting = true;
 
-        await Http.PostAsJsonAsync("MapObjects/Update", Object);
+        await Http.PostAsJsonAsync("MapObjects/UpdateEx", Object);
 
         await Reload();
         Submitting = false;

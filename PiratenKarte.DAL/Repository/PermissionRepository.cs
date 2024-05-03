@@ -52,6 +52,8 @@ public class PermissionRepository : RepositoryBase<Permission> {
         InsertOrUpdate("markerstyles_read", "Marker Stile/Ansehen");
         InsertOrUpdate("markerstyles_update", "Marker Stile/Editieren");
         InsertOrUpdate("markerstyles_delete", "Marker Stile/Löschen");
+
+        InsertOrUpdate("log_read", "Logs/Ansehen");
     }
 
     private void InsertOrUpdate(string name, string readableName) {

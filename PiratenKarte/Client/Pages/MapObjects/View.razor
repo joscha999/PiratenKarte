@@ -1,5 +1,6 @@
 ﻿@page "/mapobjects/view/{Id:guid?}"
 @using System.Globalization;
+@using PiratenKarte.Client.Components.Authorization
 @inherits AuthorizedComponentBase
 
 <div class="container pt-4">
@@ -175,13 +176,37 @@
                     </div>
                 </PermissionView>
             </div>
+
             <div class="col-lg-6" style="float: right;">
-                <h3>QR Code</h3>
-                @if (QRCode != null) {
-                    <img src="@($"data:image/png;base64, {Convert.ToBase64String(QRCode)}")" style="width: 100%;" />
-                } else {
-                    <span>QRCode nicht verfügbar :(</span>
-                }
+                <div class="mb-2">
+                    <h3>QR Code</h3>
+                    @if (QRCode != null) {
+                        <img src="@($"data:image/png;base64, {Convert.ToBase64String(QRCode)}")" style="width: 100%;" />
+                    } else {
+                        <span>QRCode nicht verfügbar :(</span>
+                    }
+                </div>
+
+                <PermissionView PermissionFilter="log_read">
+                    <div class="mb-2">
+                        <h3>Admin Log <small>(Neuste unten)</small></h3>
+
+                        @if (LogEntries == null) {
+                            <span>Lädt ...</span>
+                        } else {
+                            @foreach (var entry in LogEntries.OrderBy(e => e.TimeStamp)) {
+                                <div class="card mb-1">
+                                    <div class="card-body">
+                                        <span>@entry.Entry</span>
+                                    </div>
+                                    <div class="card-footer">
+                                        <small>@entry.TimeStamp</small>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </PermissionView>
             </div>
         </div>
     }
